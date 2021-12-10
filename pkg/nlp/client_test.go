@@ -266,7 +266,7 @@ func TestSetAnswer(t *testing.T) {
 				responses: test.responses,
 			}
 
-			s3C := &mockS3Client{
+			s := &mockS3Client{
 				getObjectOutput: test.getObjectOutput,
 				getObjectError:  test.getObjectError,
 				putObjectError:  test.putObjectError,
@@ -275,7 +275,7 @@ func TestSetAnswer(t *testing.T) {
 			c := &Client{
 				helper:     h,
 				bucketName: "bucket_name",
-				s3Client:   s3C,
+				s3Client:   s,
 			}
 
 			err := c.SetAnswer(context.Background(), "mock_id", "mock answer")
