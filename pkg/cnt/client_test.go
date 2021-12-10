@@ -102,9 +102,7 @@ func TestGetText(t *testing.T) {
 
 			server := httptest.NewServer(mux)
 
-			response, err := client.GetText(context.Background(), ItemXML{
-				Link: server.URL + urlPath,
-			})
+			response, err := client.GetText(context.Background(), server.URL+urlPath)
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
 			}

@@ -6,7 +6,7 @@ import "context"
 // root blog content.
 type Contenter interface {
 	GetItems(ctx context.Context, address string) ([]ItemXML, error)
-	GetText(ctx context.Context, item ItemXML) (*string, error)
+	GetText(ctx context.Context, address string) (*string, error)
 }
 
 // RSSXML represents the target RSS feed.

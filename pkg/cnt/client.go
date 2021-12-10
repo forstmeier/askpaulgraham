@@ -36,8 +36,8 @@ func (c *Client) GetItems(ctx context.Context, address string) ([]ItemXML, error
 }
 
 // GetText implements the cnt.Contenter.GetText method.
-func (c *Client) GetText(ctx context.Context, item ItemXML) (*string, error) {
-	response, err := http.Get(item.Link)
+func (c *Client) GetText(ctx context.Context, address string) (*string, error) {
+	response, err := http.Get(address)
 	if err != nil {
 		return nil, err
 	}
