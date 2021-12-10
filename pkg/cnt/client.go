@@ -19,14 +19,14 @@ func New() *Client {
 }
 
 // GetItems implements the cnt.Contenter.GetItems method.
-func (c *Client) GetItems(ctx context.Context, address string) ([]Item, error) {
+func (c *Client) GetItems(ctx context.Context, address string) ([]ItemXML, error) {
 	response, err := http.Get(address)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	rss := &RSS{}
+	rss := &RSSXML{}
 	decoder := xml.NewDecoder(response.Body)
 	if err := decoder.Decode(&rss); err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (c *Client) GetItems(ctx context.Context, address string) ([]Item, error) {
 }
 
 // GetText implements the cnt.Contenter.GetText method.
-func (c *Client) GetText(ctx context.Context, item Item) (*string, error) {
+func (c *Client) GetText(ctx context.Context, item ItemXML) (*string, error) {
 	response, err := http.Get(item.Link)
 	if err != nil {
 		return nil, err

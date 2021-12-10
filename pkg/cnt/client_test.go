@@ -16,7 +16,7 @@ func TestGetItems(t *testing.T) {
 	tests := []struct {
 		description string
 		body        string
-		response    []Item
+		response    []ItemXML
 		error       error
 	}{
 		{
@@ -38,7 +38,7 @@ func TestGetItems(t *testing.T) {
 		</item>
 	</channel>
 </rss>`,
-			response: []Item{
+			response: []ItemXML{
 				{
 					Link:  "http://www.paulgraham.com/goodtaste.html",
 					Title: "Is There Such a Thing as Good Taste?",
@@ -102,7 +102,7 @@ func TestGetText(t *testing.T) {
 
 			server := httptest.NewServer(mux)
 
-			response, err := client.GetText(context.Background(), Item{
+			response, err := client.GetText(context.Background(), ItemXML{
 				Link: server.URL + urlPath,
 			})
 			if err != test.error {
