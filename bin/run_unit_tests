@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# runs unit tests for all Go packages and optionally 
+# generates an HTML visual if "view" argument is provided
+
+go test -tags test -coverprofile=coverage.out ./...
+if [[ $1 == view ]]; then
+    go tool cover -html=coverage.out
+fi
