@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
+	"github.com/forstmeier/askpaulgraham/pkg/db"
 )
 
 func TestMain(m *testing.M) {
@@ -39,6 +40,10 @@ type mockDBClient struct {
 
 func (m *mockDBClient) GetIDs(ctx context.Context) ([]string, error) {
 	return m.mockGetIDsOutput, m.mockGetIDsError
+}
+
+func (m *mockDBClient) GetData(ctx context.Context) ([]db.Data, error) {
+	return nil, nil
 }
 
 func (m *mockDBClient) StoreData(ctx context.Context, id, url, title, summary, text string) error {
