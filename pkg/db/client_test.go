@@ -99,6 +99,80 @@ func TestGetIDs(t *testing.T) {
 	}
 }
 
+func TestGetData(t *testing.T) {
+	scanErr := errors.New("mock scan error")
+
+	tests := []struct {
+		description string
+		scanOutput  *dynamodb.ScanOutput
+		scanError   error
+		datas       []Data
+		error       error
+	}{
+		{
+			description: "error scanning table",
+			scanOutput:  nil,
+			scanError:   scanErr,
+			datas:       nil,
+			error:       scanErr,
+		},
+		{
+			description: "successful invocation",
+			scanOutput: &dynamodb.ScanOutput{
+				Items: []map[string]*dynamodb.AttributeValue{
+					{
+						"id": {
+							S: aws.String("mock_id"),
+						},
+						"url": {
+							S: aws.String("mock_url"),
+						},
+						"title": {
+							S: aws.String("mock_title"),
+						},
+						"summary": {
+							S: aws.String("mock_summary"),
+						},
+					},
+				},
+			},
+			scanError: nil,
+			datas: []Data{
+				{
+					ID:      "mock_id",
+					URL:     "mock_url",
+					Title:   "mock_title",
+					Summary: "mock_summary",
+				},
+			},
+			error: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			d := &mockDynamoDBClient{
+				scanOutput: test.scanOutput,
+				scanError:  test.scanError,
+			}
+
+			c := &Client{
+				dynamoDBClient: d,
+			}
+
+			datas, err := c.GetData(context.Background())
+
+			if err != test.error {
+				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
+			}
+
+			if !reflect.DeepEqual(datas, test.datas) {
+				t.Errorf("incorrect data, received: %v, expected: %v", datas, test.datas)
+			}
+		})
+	}
+}
+
 func TestStoreData(t *testing.T) {
 	putItemErr := errors.New("mock put item error")
 	putObjectErr := errors.New("mock put object error")

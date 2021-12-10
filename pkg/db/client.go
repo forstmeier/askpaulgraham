@@ -59,6 +59,29 @@ func (c *Client) GetIDs(ctx context.Context) ([]string, error) {
 	return ids, nil
 }
 
+// GetData implements the db.Databaser.GetData method
+// using AWS DynamoDB.
+func (c *Client) GetData(ctx context.Context) ([]Data, error) {
+	scanOutput, err := c.dynamoDBClient.Scan(&dynamodb.ScanInput{
+		TableName: &c.tableName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	datas := make([]Data, len(scanOutput.Items))
+	for i, item := range scanOutput.Items {
+		datas[i] = Data{
+			ID:      *item["id"].S,
+			URL:     *item["url"].S,
+			Title:   *item["title"].S,
+			Summary: *item["summary"].S,
+		}
+	}
+
+	return datas, nil
+}
+
 // StoreData implements the db.Databaser.StoreData
 // method using AWS S3 and AWS DynamoDB.
 func (c *Client) StoreData(ctx context.Context, id, url, title, summary, text string) error {
