@@ -15,15 +15,15 @@ func main() {
 
 	dbClient := db.New(
 		newSession,
-		os.Getenv("BUCKET_NAME"),
+		os.Getenv("DATA_BUCKET_NAME"),
 		os.Getenv("QUESTIONS_TABLE_NAME"),
 		os.Getenv("SUMMARIES_TABLE_NAME"),
 	)
 
 	nlpClient := nlp.New(
 		newSession,
-		os.Getenv("API_KEY"),
-		os.Getenv("BUCKET_NAME"),
+		os.Getenv("OPENAI_API_KEY"),
+		os.Getenv("DATA_BUCKET_NAME"),
 	)
 
 	lambda.Start(handler(dbClient, nlpClient))
