@@ -16,19 +16,21 @@ var _ Databaser = &Client{}
 // Client implements the db.Databaser interface using
 // AWS S3 and AWS DynamoDB.
 type Client struct {
-	bucketName     string
-	tableName      string
-	dynamoDBClient dynamoDBClient
-	s3Client       s3Client
+	bucketName         string
+	questionsTableName string
+	summariesTableName string
+	dynamoDBClient     dynamoDBClient
+	s3Client           s3Client
 }
 
 // New generates a Client pointer instance.
-func New(newSession *session.Session, bucketName, tableName string) *Client {
+func New(newSession *session.Session, bucketName, questionsTableName, summariesTableName string) *Client {
 	return &Client{
-		bucketName:     bucketName,
-		tableName:      tableName,
-		dynamoDBClient: dynamodb.New(newSession),
-		s3Client:       s3.New(newSession),
+		bucketName:         bucketName,
+		questionsTableName: questionsTableName,
+		summariesTableName: summariesTableName,
+		dynamoDBClient:     dynamodb.New(newSession),
+		s3Client:           s3.New(newSession),
 	}
 }
 
@@ -45,7 +47,7 @@ type dynamoDBClient interface {
 // using AWS DynamoDB.
 func (c *Client) GetIDs(ctx context.Context) ([]string, error) {
 	scanOutput, err := c.dynamoDBClient.Scan(&dynamodb.ScanInput{
-		TableName: &c.tableName,
+		TableName: &c.summariesTableName,
 	})
 	if err != nil {
 		return nil, err
@@ -63,7 +65,7 @@ func (c *Client) GetIDs(ctx context.Context) ([]string, error) {
 // using AWS DynamoDB.
 func (c *Client) GetData(ctx context.Context) ([]Data, error) {
 	scanOutput, err := c.dynamoDBClient.Scan(&dynamodb.ScanInput{
-		TableName: &c.tableName,
+		TableName: &c.summariesTableName,
 	})
 	if err != nil {
 		return nil, err
@@ -100,7 +102,7 @@ func (c *Client) StoreData(ctx context.Context, id, url, title, summary, text st
 				S: &summary,
 			},
 		},
-		TableName: &c.tableName,
+		TableName: &c.summariesTableName,
 	})
 	if err != nil {
 		return err
@@ -128,7 +130,7 @@ func (c *Client) StoreQuestion(ctx context.Context, question string) error {
 				S: &now,
 			},
 		},
-		TableName: &c.tableName,
+		TableName: &c.questionsTableName,
 	})
 	if err != nil {
 		return err

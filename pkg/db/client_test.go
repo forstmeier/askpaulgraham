@@ -35,7 +35,7 @@ func (m *mockS3Client) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput,
 }
 
 func TestNew(t *testing.T) {
-	client := New(session.New(), "bucket_name", "table_name")
+	client := New(session.New(), "bucket_name", "questions_table_name", "summaries_table_name")
 	if client == nil {
 		t.Errorf("incorrect client, received: %v", client)
 	}

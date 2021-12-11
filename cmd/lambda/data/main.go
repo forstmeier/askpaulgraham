@@ -21,7 +21,8 @@ func main() {
 	dbClient := db.New(
 		newSession,
 		os.Getenv("BUCKET_NAME"),
-		os.Getenv("TABLE_NAME"),
+		os.Getenv("QUESTIONS_TABLE_NAME"),
+		os.Getenv("SUMMARIES_TABLE_NAME"),
 	)
 
 	nlpClient := nlp.New(
