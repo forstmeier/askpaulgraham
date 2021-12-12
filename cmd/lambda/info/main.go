@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -11,7 +12,10 @@ import (
 )
 
 func main() {
-	newSession := session.New()
+	newSession, err := session.NewSession()
+	if err != nil {
+		panic(fmt.Sprintf("error creating session: %v", err))
+	}
 
 	dbClient := db.New(
 		newSession,
