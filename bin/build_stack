@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# compiles SAM template resources and code
+
+sam build
