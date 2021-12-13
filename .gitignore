@@ -2,4 +2,7 @@
 coverage.out
 
 # config file
-etc/config/config.json
+samconfig.toml
+
+# sam-generated resources
+.aws-sam/
