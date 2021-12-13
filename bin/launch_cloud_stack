@@ -3,4 +3,5 @@
 # creates and starts up SAM resources in the
 # AWS account
 
-sam deploy --guided
+sam deploy --no-confirm-changeset
+	
