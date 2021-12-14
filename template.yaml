@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: core infrastructure definitions
+
+Parameters:
+  DataBucket:
+    Type: String
+    Description: S3 bucket to store data
+  OpenAIAPIKey:
+    Type: String
+    Description: OpenAI API key
+  SchedulerEnabled:
+    Type: String
+    Description: Toggle scheduler on or off
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'false'
+
+Mappings:
+  SchedulerToggle:
+    Toggle:
+      'true': true
+      'false': false
+
+Resources:
+  dataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/lambda/data/
+      Description: function responsible for fetching and storing data
+      Environment:
+        Variables:
+          DATA_BUCKET_NAME:
+            Ref: DataBucket
+          QUESTIONS_TABLE_NAME:
+            Ref: questionsTable
+          SUMMARIES_TABLE_NAME:
+            Ref: summariesTable
+          OPENAI_API_KEY:
+            Ref: OpenAIAPIKey
+      Events:
+        ScheduleEvent:
+          Type: Schedule
+          Properties:
+            Description: daily check for new blog content
+            Enabled:
+              Fn::FindInMap:
+                - SchedulerToggle
+                - Toggle
+                - Ref: SchedulerEnabled
+            Schedule: cron(0 12 * * ? *)
+      Handler: data
+      MemorySize: 1024
+      Runtime: go1.x
+      Timeout: 30
+  infoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: cmd/lambda/info/
+      Description: function responsible for responding to user questions
+      Environment:
+        Variables:
+          DATA_BUCKET_NAME:
+            Ref: DataBucket
+          QUESTIONS_TABLE_NAME:
+            Ref: questionsTable
+          SUMMARIES_TABLE_NAME:
+            Ref: summariesTable
+          OPENAI_API_KEY:
+            Ref: OpenAIAPIKey
+      Events:
+        QuestionEvent:
+          Type: Api
+          Properties:
+            Method: POST
+            Path: /question
+        SummariesEvent:
+          Type: Api
+          Properties:
+            Method: GET
+            Path: /summaries
+      Handler: info
+      MemorySize: 512
+      Runtime: go1.x
+      Timeout: 15
+  questionsTable:
+    Type: AWS::Serverless::SimpleTable
+  summariesTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
