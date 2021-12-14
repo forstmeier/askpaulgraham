@@ -4,5 +4,5 @@ coverage.out
 # config file
 samconfig.toml
 
-# sam-generated resources
+# SAM-generated resources
 .aws-sam/
