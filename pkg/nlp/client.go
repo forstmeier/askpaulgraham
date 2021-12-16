@@ -49,8 +49,12 @@ func New(newSession *session.Session, apiKey, bucketName string) *Client {
 }
 
 type getSummaryReqJSON struct {
-	Prompt      string  `json:"prompt"`
-	Temperature float64 `json:"temperature"`
+	Prompt           string  `json:"prompt"`
+	MaxTokens        int     `json:"max_tokens"`
+	Temperature      float64 `json:"temperature"`
+	TopP             float64 `json:"top_p"`
+	FrequencyPenalty float64 `json:"frequency_penalty"`
+	PresencePenalty  float64 `json:"presence_penalty"`
 }
 
 type getSummaryRespJSON struct {
@@ -65,8 +69,12 @@ type getSummaryRespChoiceJSON struct {
 // GetSummary implements the nlp.NLPer.GetSummary method.
 func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	data, err := json.Marshal(getSummaryReqJSON{
-		Prompt:      text,
-		Temperature: 0.7,
+		Prompt:           text + "\n\ntl;dr",
+		MaxTokens:        60,
+		Temperature:      0.3,
+		TopP:             1.0,
+		FrequencyPenalty: 0.0,
+		PresencePenalty:  0.0,
 	})
 	if err != nil {
 		return nil, err
