@@ -32,7 +32,7 @@ type response struct {
 	error error
 }
 
-func (m *mockHelper) sendRequest(method, url string, body io.Reader, payload interface{}) error {
+func (m *mockHelper) sendRequest(method, url string, body io.Reader, payload interface{}, headers map[string]string) error {
 	if len(m.responses) == 0 {
 		m.t.Fatal("no mock responses")
 	}
@@ -155,7 +155,7 @@ func TestSetAnswer(t *testing.T) {
 			description: "error deleting file",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{
@@ -172,7 +172,7 @@ func TestSetAnswer(t *testing.T) {
 			description: "error getting object",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{
@@ -189,7 +189,7 @@ func TestSetAnswer(t *testing.T) {
 			description: "error setting answers",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{
@@ -213,7 +213,7 @@ func TestSetAnswer(t *testing.T) {
 			description: "error putting object",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{
@@ -237,7 +237,7 @@ func TestSetAnswer(t *testing.T) {
 			description: "successful invocation",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{
@@ -311,7 +311,7 @@ func TestGetAnswers(t *testing.T) {
 			description: "error getting answers",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{
@@ -326,7 +326,7 @@ func TestGetAnswers(t *testing.T) {
 			description: "successful invocation",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFile)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
 					error: nil,
 				},
 				{

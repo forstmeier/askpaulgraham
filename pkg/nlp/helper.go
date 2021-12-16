@@ -8,7 +8,7 @@ import (
 )
 
 type helper interface {
-	sendRequest(method, url string, body io.Reader, payload interface{}) error
+	sendRequest(method, url string, body io.Reader, payload interface{}, headers map[string]string) error
 }
 
 var _ helper = &help{}
@@ -18,24 +18,26 @@ type help struct {
 	httpClient http.Client
 }
 
-func (h *help) sendRequest(method, url string, body io.Reader, payload interface{}) error {
+func (h *help) sendRequest(method, url string, body io.Reader, payload interface{}, headers map[string]string) error {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", h.apiKey))
-	req.Header.Set("Content-Type", "application/json")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errNon200StatusCode
+		return fmt.Errorf("nlp: non-200 status code '%d'", resp.StatusCode)
 	}
 
 	decoder := json.NewDecoder(resp.Body)
-	if err := decoder.Decode(payload); err != nil {
+	if err := decoder.Decode(&payload); err != nil {
 		return err
 	}
 

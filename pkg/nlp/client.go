@@ -4,25 +4,23 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-const answersFile = "paul_graham_answers.jsonl"
+const answersFilename = "answers.jsonl"
 
 const (
 	summaryModel = "davinci"
 	answersModel = "curie"
 )
-
-var errNon200StatusCode = errors.New("nlp: non-200 status code response")
 
 var _ NLPer = &Client{}
 
@@ -80,6 +78,9 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 		fmt.Sprintf("https://api.openai.com/v1/engines/%s/completions", summaryModel),
 		bytes.NewReader(data),
 		&responseBody,
+		map[string]string{
+			"Content-Type": "application/json",
+		},
 	); err != nil {
 		return nil, err
 	}
@@ -109,13 +110,16 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 		"https://api.openai.com/v1/files",
 		nil,
 		&getFilesRespBody,
+		map[string]string{
+			"Content-Type": "application/json",
+		},
 	); err != nil {
 		return err
 	}
 
 	fileID := ""
 	for _, file := range getFilesRespBody.Data {
-		if file.Name == answersFile {
+		if file.Name == answersFilename {
 			fileID = file.ID
 		}
 	}
@@ -126,6 +130,7 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 			fmt.Sprintf("https://api.openai.com/v1/files/%s", fileID),
 			nil,
 			nil,
+			nil,
 		); err != nil {
 			return err
 		}
@@ -133,7 +138,7 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 
 	getAnswersResp, err := c.s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: &c.bucketName,
-		Key:    aws.String(answersFile),
+		Key:    aws.String(answersFilename),
 	})
 	if err != nil {
 		return err
@@ -159,42 +164,58 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 		}
 	}
 
-	var answersBuffer bytes.Buffer
-	bufferEncoder := json.NewEncoder(&answersBuffer)
+	answersBody := bytes.Buffer{}
+	encoder := json.NewEncoder(&answersBody)
 	for _, answer := range answers {
-		if err := bufferEncoder.Encode(answer); err != nil {
+		if err := encoder.Encode(answer); err != nil {
 			return err
 		}
 	}
 
-	var answersForm bytes.Buffer
-	writer := multipart.NewWriter(&answersForm)
-	part, err := writer.CreateFormFile("file", answersFile)
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(part, &answersBuffer)
+	openAIAnswersBody := bytes.Buffer{}
+	multipartWriter := multipart.NewWriter(&openAIAnswersBody)
+
+	var fileWriter, purposeWriter io.Writer
+
+	purposeWriter, err = multipartWriter.CreateFormField("purpose")
 	if err != nil {
 		return err
 	}
 
-	if err := writer.WriteField("purpose", "answers"); err != nil {
+	_, err = io.Copy(purposeWriter, strings.NewReader("answers"))
+	if err != nil {
 		return err
 	}
+
+	fileWriter, err = multipartWriter.CreateFormFile("file", answersFilename)
+	if err != nil {
+		return err
+	}
+
+	s3AnswersBody := answersBody
+	_, err = io.Copy(fileWriter, &answersBody)
+	if err != nil {
+		return err
+	}
+
+	multipartWriter.Close()
 
 	if err := c.helper.sendRequest(
 		http.MethodPost,
 		"https://api.openai.com/v1/files",
-		&answersForm,
+		&openAIAnswersBody,
 		nil,
+		map[string]string{
+			"Content-Type": multipartWriter.FormDataContentType(),
+		},
 	); err != nil {
 		return err
 	}
 
 	_, err = c.s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: &c.bucketName,
-		Key:    aws.String(answersFile),
-		Body:   bytes.NewReader(answersBuffer.Bytes()),
+		Key:    aws.String(answersFilename),
+		Body:   bytes.NewReader(s3AnswersBody.Bytes()),
 	})
 	if err != nil {
 		return err
@@ -223,13 +244,16 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		"https://api.openai.com/v1/files",
 		nil,
 		&getFilesRespBody,
+		map[string]string{
+			"Content-Type": "application/json",
+		},
 	); err != nil {
 		return nil, err
 	}
 
 	fileID := ""
 	for _, file := range getFilesRespBody.Data {
-		if file.Name == answersFile {
+		if file.Name == answersFilename {
 			fileID = file.ID
 		}
 	}
@@ -239,7 +263,7 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		Question: question,
 		Examples: []string{
 			"Build something that solves a problem you have",
-			"Charge others for the solution you built",
+			"The way to make your startup grow, is to make something users really love",
 		},
 		ExamplesContext: "What is the best way to start a company?",
 		File:            fileID,
@@ -252,10 +276,13 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 
 	answers := getAnswersRespJSON{}
 	if err := c.helper.sendRequest(
-		http.MethodGet,
+		http.MethodPost,
 		"https://api.openai.com/v1/answers",
 		bytes.NewReader(dataBytes),
 		&answers,
+		map[string]string{
+			"Content-Type": "application/json",
+		},
 	); err != nil {
 		return nil, err
 	}
