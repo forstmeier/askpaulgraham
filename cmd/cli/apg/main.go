@@ -42,8 +42,11 @@ func main() {
 
 	config := samConfigTOML{}
 	configContent, err := ioutil.ReadFile("samconfig.toml")
-	if err := toml.Unmarshal(configContent, &config); err != nil {
+	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
+	}
+	if err := toml.Unmarshal(configContent, &config); err != nil {
+		log.Fatalf("error unmarshalling config file: %v", err)
 	}
 
 	newSession, err := session.NewSession(&aws.Config{
