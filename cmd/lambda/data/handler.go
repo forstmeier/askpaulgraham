@@ -30,6 +30,11 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 		}
 
 		for _, item := range items {
+			// ignore Common Lisp chapter posts
+			if strings.Contains(item.Link, "1638975042") {
+				continue
+			}
+
 			_, file := path.Split(item.Link)
 			id := strings.Replace(file, ".html", "", -1)
 			if _, ok := oldIDsMap[id]; !ok {
