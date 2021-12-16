@@ -6,3 +6,6 @@ samconfig.toml
 
 # SAM-generated resources
 .aws-sam/
+
+# stored answers file
+answers.jsonl
