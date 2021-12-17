@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# updates existing SAM resources in the
+# AWS account
+
+sam deploy --no-confirm-changeset

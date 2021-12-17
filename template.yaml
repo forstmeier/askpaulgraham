@@ -93,3 +93,11 @@ Resources:
       PrimaryKey:
         Name: id
         Type: String
+
+Outputs:
+  QuestionsTableName:
+    Value:
+      Ref: questionsTable
+  SummariesTableName:
+    Value:
+      Ref: summariesTable

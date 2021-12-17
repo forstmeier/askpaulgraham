@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+stack_name=askpaulgraham
+
+stacks_info=$(aws cloudformation describe-stacks --stack-name $stack_name)
+
+stack_outputs=$( jq -r  '.Stacks[0].Outputs' <<< "${stacks_info}" ) 
+
+questions_table_name=$( jq -r 'map(select(.OutputKey == "QuestionsTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
+summaries_table_name=$( jq -r 'map(select(.OutputKey == "SummariesTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
+
+aws dynamodb scan \
+	--table-name $questions_table_name \
+	> questions_export.json
+
+aws dynamodb scan \
+	--table-name $summaries_table_name \
+	> summaries_export.json
+
+aws cloudformation delete-stack --stack-name askpaulgraham
