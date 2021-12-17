@@ -7,5 +7,14 @@ samconfig.toml
 # SAM-generated resources
 .aws-sam/
 
-# stored answers file
+# stored answers files
 answers.jsonl
+answer.json
+
+# stored summaries files
+summaries.json
+summary.json
+
+# exported data files
+summaries_export.json
+questions_export.json
