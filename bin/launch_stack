@@ -16,6 +16,31 @@ stack_outputs=$( jq -r  '.Stacks[0].Outputs' <<< "${stacks_info}" )
 
 questions_table_name=$( jq -r 'map(select(.OutputKey == "QuestionsTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
 summaries_table_name=$( jq -r 'map(select(.OutputKey == "SummariesTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
+data_bucket_name=$( jq -r 'map(select(.OutputKey == "QuestionsTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
+open_ai_api_key=$( jq -r 'map(select(.OutputKey == "SummariesTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
 
 python3 ./bin/batch_upload.py questions_export.json $questions_table_name
 python3 ./bin/batch_upload.py summaries_export.json $summaries_table_name
+
+config_json=$( jq -n \
+	--arg questions_table_name "$questions_table_name" \
+	--arg summaries_table_name "$summaries_table_name" \
+	--arg data_bucket_name "$data_bucket_name" \
+	--arg open_ai_api_key "$open_ai_api_key" \
+'{
+	"aws": {
+		"dynamodb": {
+			"questions_table_name": $questions_table_name,
+			"summaries_table_name": $summaries_table_name
+		},
+		"s3": {
+			"data_bucket_name": $data_bucket_name
+		}
+	},
+	"open_ai": {
+		"api_key": $open_ai_api_key
+	}
+}'
+)
+
+echo $config_json > etc/config/config.json

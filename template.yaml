@@ -101,3 +101,9 @@ Outputs:
   SummariesTableName:
     Value:
       Ref: summariesTable
+  DataBucketName:
+    Value:
+      Ref: DataBucket
+  OpenAIAPIKey:
+    Value:
+      Ref: OpenAIAPIKey
