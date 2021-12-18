@@ -30,11 +30,6 @@ const (
 	bulkSize   = "bulk"
 )
 
-type samConfigTOML struct {
-	DataBucket   string `toml:"data_bucket"`
-	OpenAIAPIKey string `toml:"open_ai_api_key"`
-}
-
 type summariesJSON struct {
 	Items []summaryJSON `json:"Items"`
 }
@@ -67,7 +62,7 @@ func main() {
 		log.Fatal("error invalid arguments: argument 'id' is required for 'single' operation")
 	}
 
-	config := samConfigTOML{}
+	config := util.Config{}
 	configContent, err := os.ReadFile("samconfig.toml")
 	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
@@ -84,7 +79,7 @@ func main() {
 	}
 
 	cntClient := cnt.New()
-	nlpClient := nlp.New(newSession, config.OpenAIAPIKey, config.DataBucket)
+	nlpClient := nlp.New(newSession, config.OpenAI.APIKey, config.AWS.S3.DataBucketName)
 
 	if *action == getAction {
 		items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")

@@ -33,11 +33,6 @@ const (
 	bulkSize   = "bulk"
 )
 
-type samConfigTOML struct {
-	DataBucket   string `toml:"data_bucket"`
-	OpenAIAPIKey string `toml:"open_ai_api_key"`
-}
-
 type answerJSON struct {
 	Text     string `json:"text"`
 	Metadata string `json:"metadata"`
@@ -64,7 +59,7 @@ func main() {
 		log.Fatal("error invalid arguments: argument 'id' is required for 'single' operation")
 	}
 
-	config := samConfigTOML{}
+	config := util.Config{}
 	configContent, err := ioutil.ReadFile("samconfig.toml")
 	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
@@ -155,7 +150,7 @@ func main() {
 			}
 
 			getAnswersResp, err := s3Client.GetObject(&s3.GetObjectInput{
-				Bucket: &config.DataBucket,
+				Bucket: &config.AWS.S3.DataBucketName,
 				Key:    aws.String(answersFilename),
 			})
 			if err != nil {
@@ -189,7 +184,7 @@ func main() {
 		}
 
 		_, err = s3Client.PutObject(&s3.PutObjectInput{
-			Bucket: &config.DataBucket,
+			Bucket: &config.AWS.S3.DataBucketName,
 			Key:    aws.String(answersFilename),
 			Body:   bytes.NewReader(bodyBytes),
 		})
