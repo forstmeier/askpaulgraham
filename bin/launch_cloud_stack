@@ -2,6 +2,20 @@
 
 # creates and starts up SAM resources in the
 # AWS account
+# 
+# this also bootstraps the summaries and
+# questions DynamoDB tables with data from
+# the corresponding local exported files
 
 sam deploy --no-confirm-changeset
-	
+
+stack_name=askpaulgraham
+
+stacks_info=$(aws cloudformation describe-stacks --stack-name $stack_name)
+stack_outputs=$( jq -r  '.Stacks[0].Outputs' <<< "${stacks_info}" ) 
+
+questions_table_name=$( jq -r 'map(select(.OutputKey == "QuestionsTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
+summaries_table_name=$( jq -r 'map(select(.OutputKey == "SummariesTableName")) | .[0].OutputValue' <<< "${stack_outputs}" )
+
+python3 ./bin/batch_upload.py questions_export.json $questions_table_name
+python3 ./bin/batch_upload.py summaries_export.json $summaries_table_name
