@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-# creates and starts up SAM resources on the
-# local machine
-# 
-# this is only used for "questions" endpiont
-# testing
-
-sam local start-api
