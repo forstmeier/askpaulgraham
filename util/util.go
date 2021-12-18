@@ -15,7 +15,14 @@ import (
 
 // Config represents the config.json file.
 type Config struct {
-	DynamoDB DynamoDB
+	AWS    AWS    `json:"aws"`
+	OpenAI OpenAI `json:"openai"`
+}
+
+// AWS represents aws config.json file field.
+type AWS struct {
+	DynamoDB DynamoDB `json:"dynamodb"`
+	S3       S3       `json:"s3"`
 }
 
 // DynamoDB represents dynamodb config.json file field.
