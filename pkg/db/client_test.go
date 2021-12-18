@@ -13,25 +13,30 @@ import (
 )
 
 type mockDynamoDBClient struct {
-	scanOutput   *dynamodb.ScanOutput
-	scanError    error
-	putItemError error
+	mockScanOutput          *dynamodb.ScanOutput
+	mockScanError           error
+	mockBatchWriteItemError error
+	mockPutItemError        error
 }
 
 func (m *mockDynamoDBClient) Scan(input *dynamodb.ScanInput) (*dynamodb.ScanOutput, error) {
-	return m.scanOutput, m.scanError
+	return m.mockScanOutput, m.mockScanError
+}
+
+func (m *mockDynamoDBClient) BatchWriteItem(input *dynamodb.BatchWriteItemInput) (*dynamodb.BatchWriteItemOutput, error) {
+	return nil, m.mockBatchWriteItemError
 }
 
 func (m *mockDynamoDBClient) PutItem(input *dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error) {
-	return nil, m.putItemError
+	return nil, m.mockPutItemError
 }
 
 type mockS3Client struct {
-	putObjectError error
+	mockPutObjectError error
 }
 
 func (m *mockS3Client) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-	return nil, m.putObjectError
+	return nil, m.mockPutObjectError
 }
 
 func TestNew(t *testing.T) {
@@ -42,25 +47,25 @@ func TestNew(t *testing.T) {
 }
 
 func TestGetIDs(t *testing.T) {
-	scanErr := errors.New("mock scan error")
+	mockScanErr := errors.New("mock scan error")
 
 	tests := []struct {
-		description string
-		scanOutput  *dynamodb.ScanOutput
-		scanError   error
-		ids         []string
-		error       error
+		description    string
+		mockScanOutput *dynamodb.ScanOutput
+		mockScanError  error
+		ids            []string
+		error          error
 	}{
 		{
-			description: "error scanning table",
-			scanOutput:  nil,
-			scanError:   scanErr,
-			ids:         nil,
-			error:       scanErr,
+			description:    "error scanning table",
+			mockScanOutput: nil,
+			mockScanError:  mockScanErr,
+			ids:            nil,
+			error:          mockScanErr,
 		},
 		{
 			description: "successful invocation",
-			scanOutput: &dynamodb.ScanOutput{
+			mockScanOutput: &dynamodb.ScanOutput{
 				Items: []map[string]*dynamodb.AttributeValue{
 					{
 						"id": {
@@ -69,17 +74,17 @@ func TestGetIDs(t *testing.T) {
 					},
 				},
 			},
-			scanError: nil,
-			ids:       []string{"mock_id"},
-			error:     nil,
+			mockScanError: nil,
+			ids:           []string{"mock_id"},
+			error:         nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			d := &mockDynamoDBClient{
-				scanOutput: test.scanOutput,
-				scanError:  test.scanError,
+				mockScanOutput: test.mockScanOutput,
+				mockScanError:  test.mockScanError,
 			}
 
 			c := &Client{
@@ -100,25 +105,25 @@ func TestGetIDs(t *testing.T) {
 }
 
 func TestGetData(t *testing.T) {
-	scanErr := errors.New("mock scan error")
+	mockScanErr := errors.New("mock scan error")
 
 	tests := []struct {
-		description string
-		scanOutput  *dynamodb.ScanOutput
-		scanError   error
-		datas       []Data
-		error       error
+		description    string
+		mockScanOutput *dynamodb.ScanOutput
+		mockScanError  error
+		datas          []Data
+		error          error
 	}{
 		{
-			description: "error scanning table",
-			scanOutput:  nil,
-			scanError:   scanErr,
-			datas:       nil,
-			error:       scanErr,
+			description:    "error scanning table",
+			mockScanOutput: nil,
+			mockScanError:  mockScanErr,
+			datas:          nil,
+			error:          mockScanErr,
 		},
 		{
 			description: "successful invocation",
-			scanOutput: &dynamodb.ScanOutput{
+			mockScanOutput: &dynamodb.ScanOutput{
 				Items: []map[string]*dynamodb.AttributeValue{
 					{
 						"id": {
@@ -136,7 +141,7 @@ func TestGetData(t *testing.T) {
 					},
 				},
 			},
-			scanError: nil,
+			mockScanError: nil,
 			datas: []Data{
 				{
 					ID:      "mock_id",
@@ -152,15 +157,15 @@ func TestGetData(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			d := &mockDynamoDBClient{
-				scanOutput: test.scanOutput,
-				scanError:  test.scanError,
+				mockScanOutput: test.mockScanOutput,
+				mockScanError:  test.mockScanError,
 			}
 
 			c := &Client{
 				dynamoDBClient: d,
 			}
 
-			datas, err := c.GetData(context.Background())
+			datas, err := c.GetSummaries(context.Background())
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
@@ -173,37 +178,44 @@ func TestGetData(t *testing.T) {
 	}
 }
 
-func TestStoreSummary(t *testing.T) {
-	putItemErr := errors.New("mock put item error")
+func TestStoreSummaries(t *testing.T) {
+	mockBatchWriteItemErr := errors.New("mock batch write item error")
 
 	tests := []struct {
-		description  string
-		putItemError error
-		error        error
+		description             string
+		mockBatchWriteItemError error
+		error                   error
 	}{
 		{
-			description:  "error putting item",
-			putItemError: putItemErr,
-			error:        putItemErr,
+			description:             "error putting item",
+			mockBatchWriteItemError: mockBatchWriteItemErr,
+			error:                   mockBatchWriteItemErr,
 		},
 		{
-			description:  "successful invocation",
-			putItemError: nil,
-			error:        nil,
+			description:             "successful invocation",
+			mockBatchWriteItemError: nil,
+			error:                   nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			d := &mockDynamoDBClient{
-				putItemError: test.putItemError,
+				mockBatchWriteItemError: test.mockBatchWriteItemError,
 			}
 
 			c := &Client{
 				dynamoDBClient: d,
 			}
 
-			err := c.StoreSummary(context.Background(), "mock_id", "url.com", "title", "short summary")
+			err := c.StoreSummaries(context.Background(), []Data{
+				{
+					ID:      "mock_id",
+					URL:     "url.com",
+					Title:   "title",
+					Summary: "short summary",
+				},
+			})
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
@@ -213,29 +225,29 @@ func TestStoreSummary(t *testing.T) {
 }
 
 func TestStoreText(t *testing.T) {
-	putObjectErr := errors.New("mock put object error")
+	mockPutObjectErr := errors.New("mock put object error")
 
 	tests := []struct {
-		description    string
-		putObjectError error
-		error          error
+		description        string
+		mockPutObjectError error
+		error              error
 	}{
 		{
-			description:    "error putting object",
-			putObjectError: putObjectErr,
-			error:          putObjectErr,
+			description:        "error putting object",
+			mockPutObjectError: mockPutObjectErr,
+			error:              mockPutObjectErr,
 		},
 		{
-			description:    "successful invocation",
-			putObjectError: nil,
-			error:          nil,
+			description:        "successful invocation",
+			mockPutObjectError: nil,
+			error:              nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			s := &mockS3Client{
-				putObjectError: test.putObjectError,
+				mockPutObjectError: test.mockPutObjectError,
 			}
 
 			c := &Client{
@@ -252,29 +264,29 @@ func TestStoreText(t *testing.T) {
 }
 
 func TestStoreQuestion(t *testing.T) {
-	putItemErr := errors.New("mock put item error")
+	mockPutItemErr := errors.New("mock put item error")
 
 	tests := []struct {
-		description  string
-		putItemError error
-		error        error
+		description      string
+		mockPutItemError error
+		error            error
 	}{
 		{
-			description:  "error putting item",
-			putItemError: putItemErr,
-			error:        putItemErr,
+			description:      "error putting item",
+			mockPutItemError: mockPutItemErr,
+			error:            mockPutItemErr,
 		},
 		{
-			description:  "successful invocation",
-			putItemError: nil,
-			error:        nil,
+			description:      "successful invocation",
+			mockPutItemError: nil,
+			error:            nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			d := &mockDynamoDBClient{
-				putItemError: test.putItemError,
+				mockPutItemError: test.mockPutItemError,
 			}
 
 			c := &Client{

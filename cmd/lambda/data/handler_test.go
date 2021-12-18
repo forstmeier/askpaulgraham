@@ -33,22 +33,22 @@ func (m *mockCntClient) GetText(ctx context.Context, address string) (*string, e
 }
 
 type mockDBClient struct {
-	mockGetIDsOutput      []string
-	mockGetIDsError       error
-	mockStoreSummaryError error
-	mockStoreTextError    error
+	mockGetIDsOutput        []string
+	mockGetIDsError         error
+	mockStoreSummariesError error
+	mockStoreTextError      error
 }
 
 func (m *mockDBClient) GetIDs(ctx context.Context) ([]string, error) {
 	return m.mockGetIDsOutput, m.mockGetIDsError
 }
 
-func (m *mockDBClient) GetData(ctx context.Context) ([]db.Data, error) {
+func (m *mockDBClient) GetSummaries(ctx context.Context) ([]db.Data, error) {
 	return nil, nil
 }
 
-func (m *mockDBClient) StoreSummary(ctx context.Context, id, url, title, summary string) error {
-	return m.mockStoreSummaryError
+func (m *mockDBClient) StoreSummaries(ctx context.Context, summaries []db.Data) error {
+	return m.mockStoreSummariesError
 }
 
 func (m *mockDBClient) StoreText(ctx context.Context, id, text string) error {
@@ -78,45 +78,45 @@ func (m *mockNLPClient) GetAnswers(ctx context.Context, question string) ([]stri
 }
 
 func Test_handler(t *testing.T) {
-	getItemsErr := errors.New("mock get items error")
-	getIDsErr := errors.New("mock get ids error")
-	getTextErr := errors.New("mock get text error")
-	getSummaryErr := errors.New("mock get summary error")
-	storeSummaryErr := errors.New("mock store summary error")
-	storeTextErr := errors.New("mock store text error")
-	setAnswerErr := errors.New("mock set answer error")
+	mockGetItemsErr := errors.New("mock get items error")
+	mockGetIDsErr := errors.New("mock get ids error")
+	mockGetTextErr := errors.New("mock get text error")
+	mockGetSummaryErr := errors.New("mock get summary error")
+	mockStoreSummariesErr := errors.New("mock store summaries error")
+	mockStoreTextErr := errors.New("mock store text error")
+	mockSetAnswerErr := errors.New("mock set answer error")
 
 	mockText := "full text"
 	mockSummary := "summary"
 
 	tests := []struct {
-		description           string
-		mockGetItemsOutput    []cnt.ItemXML
-		mockGetItemsError     error
-		mockGetIDsOutput      []string
-		mockGetIDsError       error
-		mockGetTextOutput     *string
-		mockGetTextError      error
-		mockGetSummaryOutput  *string
-		mockGetSummaryError   error
-		mockStoreSummaryError error
-		mockStoreTextError    error
-		mockSetAnswerError    error
-		error                 error
+		description             string
+		mockGetItemsOutput      []cnt.ItemXML
+		mockGetItemsError       error
+		mockGetIDsOutput        []string
+		mockGetIDsError         error
+		mockGetTextOutput       *string
+		mockGetTextError        error
+		mockGetSummaryOutput    *string
+		mockGetSummaryError     error
+		mockStoreSummariesError error
+		mockStoreTextError      error
+		mockSetAnswerError      error
+		error                   error
 	}{
 		{
 			description:        "error getting items",
 			mockGetItemsOutput: nil,
-			mockGetItemsError:  getItemsErr,
-			error:              getItemsErr,
+			mockGetItemsError:  mockGetItemsErr,
+			error:              mockGetItemsErr,
 		},
 		{
 			description:        "error getting ids",
 			mockGetItemsOutput: []cnt.ItemXML{},
 			mockGetItemsError:  nil,
 			mockGetIDsOutput:   nil,
-			mockGetIDsError:    getIDsErr,
-			error:              getIDsErr,
+			mockGetIDsError:    mockGetIDsErr,
+			error:              mockGetIDsErr,
 		},
 		{
 			description: "error getting text",
@@ -129,8 +129,8 @@ func Test_handler(t *testing.T) {
 			mockGetIDsOutput:  []string{"old_id"},
 			mockGetIDsError:   nil,
 			mockGetTextOutput: nil,
-			mockGetTextError:  getTextErr,
-			error:             getTextErr,
+			mockGetTextError:  mockGetTextErr,
+			error:             mockGetTextErr,
 		},
 		{
 			description: "error getting summary",
@@ -145,8 +145,8 @@ func Test_handler(t *testing.T) {
 			mockGetTextOutput:    &mockText,
 			mockGetTextError:     nil,
 			mockGetSummaryOutput: nil,
-			mockGetSummaryError:  getSummaryErr,
-			error:                getSummaryErr,
+			mockGetSummaryError:  mockGetSummaryErr,
+			error:                mockGetSummaryErr,
 		},
 		{
 			description: "error storing summary",
@@ -155,15 +155,15 @@ func Test_handler(t *testing.T) {
 					Link: "http://www.paulgraham.com/new_id.html",
 				},
 			},
-			mockGetItemsError:     nil,
-			mockGetIDsOutput:      []string{"old_id"},
-			mockGetIDsError:       nil,
-			mockGetTextOutput:     &mockText,
-			mockGetTextError:      nil,
-			mockGetSummaryOutput:  &mockSummary,
-			mockGetSummaryError:   nil,
-			mockStoreSummaryError: storeSummaryErr,
-			error:                 storeSummaryErr,
+			mockGetItemsError:       nil,
+			mockGetIDsOutput:        []string{"old_id"},
+			mockGetIDsError:         nil,
+			mockGetTextOutput:       &mockText,
+			mockGetTextError:        nil,
+			mockGetSummaryOutput:    &mockSummary,
+			mockGetSummaryError:     nil,
+			mockStoreSummariesError: mockStoreSummariesErr,
+			error:                   mockStoreSummariesErr,
 		},
 		{
 			description: "error storing text",
@@ -172,16 +172,16 @@ func Test_handler(t *testing.T) {
 					Link: "http://www.paulgraham.com/new_id.html",
 				},
 			},
-			mockGetItemsError:     nil,
-			mockGetIDsOutput:      []string{"old_id"},
-			mockGetIDsError:       nil,
-			mockGetTextOutput:     &mockText,
-			mockGetTextError:      nil,
-			mockGetSummaryOutput:  &mockSummary,
-			mockGetSummaryError:   nil,
-			mockStoreSummaryError: nil,
-			mockStoreTextError:    storeTextErr,
-			error:                 storeTextErr,
+			mockGetItemsError:       nil,
+			mockGetIDsOutput:        []string{"old_id"},
+			mockGetIDsError:         nil,
+			mockGetTextOutput:       &mockText,
+			mockGetTextError:        nil,
+			mockGetSummaryOutput:    &mockSummary,
+			mockGetSummaryError:     nil,
+			mockStoreSummariesError: nil,
+			mockStoreTextError:      mockStoreTextErr,
+			error:                   mockStoreTextErr,
 		},
 		{
 			description: "error setting answer",
@@ -190,17 +190,17 @@ func Test_handler(t *testing.T) {
 					Link: "http://www.paulgraham.com/new_id.html",
 				},
 			},
-			mockGetItemsError:     nil,
-			mockGetIDsOutput:      []string{"old_id"},
-			mockGetIDsError:       nil,
-			mockGetTextOutput:     &mockText,
-			mockGetTextError:      nil,
-			mockGetSummaryOutput:  &mockSummary,
-			mockGetSummaryError:   nil,
-			mockStoreSummaryError: nil,
-			mockStoreTextError:    nil,
-			mockSetAnswerError:    setAnswerErr,
-			error:                 setAnswerErr,
+			mockGetItemsError:       nil,
+			mockGetIDsOutput:        []string{"old_id"},
+			mockGetIDsError:         nil,
+			mockGetTextOutput:       &mockText,
+			mockGetTextError:        nil,
+			mockGetSummaryOutput:    &mockSummary,
+			mockGetSummaryError:     nil,
+			mockStoreSummariesError: nil,
+			mockStoreTextError:      nil,
+			mockSetAnswerError:      mockSetAnswerErr,
+			error:                   mockSetAnswerErr,
 		},
 		{
 			description: "successful invocation",
@@ -209,17 +209,17 @@ func Test_handler(t *testing.T) {
 					Link: "http://www.paulgraham.com/new_id.html",
 				},
 			},
-			mockGetItemsError:     nil,
-			mockGetIDsOutput:      []string{"old_id"},
-			mockGetIDsError:       nil,
-			mockGetTextOutput:     &mockText,
-			mockGetTextError:      nil,
-			mockGetSummaryOutput:  &mockSummary,
-			mockGetSummaryError:   nil,
-			mockStoreSummaryError: nil,
-			mockStoreTextError:    nil,
-			mockSetAnswerError:    nil,
-			error:                 nil,
+			mockGetItemsError:       nil,
+			mockGetIDsOutput:        []string{"old_id"},
+			mockGetIDsError:         nil,
+			mockGetTextOutput:       &mockText,
+			mockGetTextError:        nil,
+			mockGetSummaryOutput:    &mockSummary,
+			mockGetSummaryError:     nil,
+			mockStoreSummariesError: nil,
+			mockStoreTextError:      nil,
+			mockSetAnswerError:      nil,
+			error:                   nil,
 		},
 	}
 
@@ -233,10 +233,10 @@ func Test_handler(t *testing.T) {
 			}
 
 			d := &mockDBClient{
-				mockGetIDsOutput:      test.mockGetIDsOutput,
-				mockGetIDsError:       test.mockGetIDsError,
-				mockStoreSummaryError: test.mockStoreSummaryError,
-				mockStoreTextError:    test.mockStoreTextError,
+				mockGetIDsOutput:        test.mockGetIDsOutput,
+				mockGetIDsError:         test.mockGetIDsError,
+				mockStoreSummariesError: test.mockStoreSummariesError,
+				mockStoreTextError:      test.mockStoreTextError,
 			}
 
 			n := &mockNLPClient{

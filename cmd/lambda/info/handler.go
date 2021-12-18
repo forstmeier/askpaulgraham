@@ -23,7 +23,7 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer) func(ctx context.Contex
 
 		switch request.HTTPMethod {
 		case "GET":
-			data, err := dbClient.GetData(ctx)
+			data, err := dbClient.GetSummaries(ctx)
 			if err != nil {
 				return util.SendResponse(
 					http.StatusInternalServerError,

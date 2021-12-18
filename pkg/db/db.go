@@ -6,8 +6,8 @@ import "context"
 // storage layer of the application.
 type Databaser interface {
 	GetIDs(ctx context.Context) ([]string, error)
-	GetData(ctx context.Context) ([]Data, error)
-	StoreSummary(ctx context.Context, id, url, title, summary string) error
+	GetSummaries(ctx context.Context) ([]Data, error)
+	StoreSummaries(ctx context.Context, summaries []Data) error
 	StoreText(ctx context.Context, id, text string) error
 	StoreQuestion(ctx context.Context, question string) error
 }

@@ -29,11 +29,11 @@ func (m *mockDBClient) GetIDs(ctx context.Context) ([]string, error) {
 	return nil, nil
 }
 
-func (m *mockDBClient) GetData(ctx context.Context) ([]db.Data, error) {
+func (m *mockDBClient) GetSummaries(ctx context.Context) ([]db.Data, error) {
 	return m.mockGetDataOutput, m.mockGetDataError
 }
 
-func (m *mockDBClient) StoreSummary(ctx context.Context, id, url, title, summary string) error {
+func (m *mockDBClient) StoreSummaries(ctx context.Context, summaries []db.Data) error {
 	return nil
 }
 

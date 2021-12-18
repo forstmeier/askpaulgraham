@@ -40,6 +40,7 @@ type s3Client interface {
 
 type dynamoDBClient interface {
 	Scan(input *dynamodb.ScanInput) (*dynamodb.ScanOutput, error)
+	BatchWriteItem(input *dynamodb.BatchWriteItemInput) (*dynamodb.BatchWriteItemOutput, error)
 	PutItem(input *dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error)
 }
 
@@ -61,9 +62,9 @@ func (c *Client) GetIDs(ctx context.Context) ([]string, error) {
 	return ids, nil
 }
 
-// GetData implements the db.Databaser.GetData method
-// using AWS DynamoDB.
-func (c *Client) GetData(ctx context.Context) ([]Data, error) {
+// GetSummaries implements the db.Databaser.GetSummaries
+// method using AWS DynamoDB.
+func (c *Client) GetSummaries(ctx context.Context) ([]Data, error) {
 	scanOutput, err := c.dynamoDBClient.Scan(&dynamodb.ScanInput{
 		TableName: &c.summariesTableName,
 	})
@@ -84,28 +85,49 @@ func (c *Client) GetData(ctx context.Context) ([]Data, error) {
 	return datas, nil
 }
 
-// StoreSummary implements the db.Databaser.StoreSummary
+// StoreSummaries implements the db.Databaser.StoreSummaries
 // method using AWS DynamoDB.
-func (c *Client) StoreSummary(ctx context.Context, id, url, title, summary string) error {
-	_, err := c.dynamoDBClient.PutItem(&dynamodb.PutItemInput{
-		Item: map[string]*dynamodb.AttributeValue{
-			"id": {
-				S: &id,
-			},
-			"url": {
-				S: &url,
-			},
-			"title": {
-				S: &title,
-			},
-			"summary": {
-				S: &summary,
-			},
-		},
-		TableName: &c.summariesTableName,
-	})
+func (c *Client) StoreSummaries(ctx context.Context, summaries []Data) error {
+	chunk := 25
+	for i := 0; i < len(summaries); i += chunk {
+		end := i + chunk
+		if end > len(summaries) {
+			end = len(summaries)
+		}
 
-	return err
+		putRequests := []*dynamodb.WriteRequest{}
+		for _, summary := range summaries[i:end] {
+			putRequests = append(putRequests, &dynamodb.WriteRequest{
+				PutRequest: &dynamodb.PutRequest{
+					Item: map[string]*dynamodb.AttributeValue{
+						"id": {
+							S: aws.String(summary.ID),
+						},
+						"url": {
+							S: aws.String(summary.URL),
+						},
+						"title": {
+							S: aws.String(summary.Title),
+						},
+						"summary": {
+							S: aws.String(summary.Summary),
+						},
+					},
+				},
+			})
+		}
+
+		_, err := c.dynamoDBClient.BatchWriteItem(&dynamodb.BatchWriteItemInput{
+			RequestItems: map[string][]*dynamodb.WriteRequest{
+				c.summariesTableName: putRequests,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // StoreText implements the db.Databaser.StoreText
