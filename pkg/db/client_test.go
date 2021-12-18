@@ -173,33 +173,23 @@ func TestGetData(t *testing.T) {
 	}
 }
 
-func TestStoreData(t *testing.T) {
+func TestStoreSummary(t *testing.T) {
 	putItemErr := errors.New("mock put item error")
-	putObjectErr := errors.New("mock put object error")
 
 	tests := []struct {
-		description    string
-		putItemError   error
-		putObjectError error
-		error          error
+		description  string
+		putItemError error
+		error        error
 	}{
 		{
-			description:    "error putting item",
-			putItemError:   putItemErr,
-			putObjectError: nil,
-			error:          putItemErr,
+			description:  "error putting item",
+			putItemError: putItemErr,
+			error:        putItemErr,
 		},
 		{
-			description:    "error putting object",
-			putItemError:   nil,
-			putObjectError: putObjectErr,
-			error:          putObjectErr,
-		},
-		{
-			description:    "successful invocation",
-			putItemError:   nil,
-			putObjectError: nil,
-			error:          nil,
+			description:  "successful invocation",
+			putItemError: nil,
+			error:        nil,
 		},
 	}
 
@@ -209,16 +199,50 @@ func TestStoreData(t *testing.T) {
 				putItemError: test.putItemError,
 			}
 
+			c := &Client{
+				dynamoDBClient: d,
+			}
+
+			err := c.StoreSummary(context.Background(), "mock_id", "url.com", "title", "short summary")
+
+			if err != test.error {
+				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
+			}
+		})
+	}
+}
+
+func TestStoreText(t *testing.T) {
+	putObjectErr := errors.New("mock put object error")
+
+	tests := []struct {
+		description    string
+		putObjectError error
+		error          error
+	}{
+		{
+			description:    "error putting object",
+			putObjectError: putObjectErr,
+			error:          putObjectErr,
+		},
+		{
+			description:    "successful invocation",
+			putObjectError: nil,
+			error:          nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
 			s := &mockS3Client{
 				putObjectError: test.putObjectError,
 			}
 
 			c := &Client{
-				dynamoDBClient: d,
-				s3Client:       s,
+				s3Client: s,
 			}
 
-			err := c.StoreData(context.Background(), "mock_id", "url.com", "title", "short summary", "full text")
+			err := c.StoreText(context.Background(), "mock_id", "full text")
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)

@@ -84,9 +84,9 @@ func (c *Client) GetData(ctx context.Context) ([]Data, error) {
 	return datas, nil
 }
 
-// StoreData implements the db.Databaser.StoreData
-// method using AWS S3 and AWS DynamoDB.
-func (c *Client) StoreData(ctx context.Context, id, url, title, summary, text string) error {
+// StoreSummary implements the db.Databaser.StoreSummary
+// method using AWS DynamoDB.
+func (c *Client) StoreSummary(ctx context.Context, id, url, title, summary string) error {
 	_, err := c.dynamoDBClient.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"id": {
@@ -104,11 +104,14 @@ func (c *Client) StoreData(ctx context.Context, id, url, title, summary, text st
 		},
 		TableName: &c.summariesTableName,
 	})
-	if err != nil {
-		return err
-	}
 
-	_, err = c.s3Client.PutObject(&s3.PutObjectInput{
+	return err
+}
+
+// StoreText implements the db.Databaser.StoreText
+// method using AWS S3.
+func (c *Client) StoreText(ctx context.Context, id, text string) error {
+	_, err := c.s3Client.PutObject(&s3.PutObjectInput{
 		Body:   aws.ReadSeekCloser(strings.NewReader(text)),
 		Bucket: &c.bucketName,
 		Key:    aws.String(id + ".md"),

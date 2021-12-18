@@ -48,8 +48,13 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					return err
 				}
 
-				if err := dbClient.StoreData(ctx, id, item.Link, item.Title, *summary, *text); err != nil {
-					util.Log("STORE_DATA_ERROR", err)
+				if err := dbClient.StoreSummary(ctx, id, item.Link, item.Title, *summary); err != nil {
+					util.Log("STORE_SUMMARY_ERROR", err)
+					return err
+				}
+
+				if err := dbClient.StoreText(ctx, id, *text); err != nil {
+					util.Log("STORE_TEXT_ERROR", err)
 					return err
 				}
 

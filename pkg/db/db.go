@@ -7,7 +7,8 @@ import "context"
 type Databaser interface {
 	GetIDs(ctx context.Context) ([]string, error)
 	GetData(ctx context.Context) ([]Data, error)
-	StoreData(ctx context.Context, id, url, title, summary, text string) error
+	StoreSummary(ctx context.Context, id, url, title, summary string) error
+	StoreText(ctx context.Context, id, text string) error
 	StoreQuestion(ctx context.Context, question string) error
 }
 

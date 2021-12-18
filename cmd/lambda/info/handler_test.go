@@ -33,7 +33,11 @@ func (m *mockDBClient) GetData(ctx context.Context) ([]db.Data, error) {
 	return m.mockGetDataOutput, m.mockGetDataError
 }
 
-func (m *mockDBClient) StoreData(ctx context.Context, id, url, title, summary, text string) error {
+func (m *mockDBClient) StoreSummary(ctx context.Context, id, url, title, summary string) error {
+	return nil
+}
+
+func (m *mockDBClient) StoreText(ctx context.Context, id, text string) error {
 	return nil
 }
 
