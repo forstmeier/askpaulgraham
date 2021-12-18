@@ -13,6 +13,27 @@ import (
 	"github.com/forstmeier/askpaulgraham/pkg/db"
 )
 
+// Config represents the config.json file.
+type Config struct {
+	DynamoDB DynamoDB
+}
+
+// DynamoDB represents dynamodb config.json file field.
+type DynamoDB struct {
+	QuestionsTableName string `json:"questions_table_name"`
+	SummariesTableName string `json:"summaries_table_name"`
+}
+
+// S3 represents s3 config.json file field.
+type S3 struct {
+	DataBucketName string `json:"data_bucket_name"`
+}
+
+// OpenAI represents openai config.json file field.
+type OpenAI struct {
+	APIKey string `json:"api_key"`
+}
+
 // Log provides a basic wrapper to format log output.
 func Log(key string, value interface{}) {
 	logMessage(key, value)

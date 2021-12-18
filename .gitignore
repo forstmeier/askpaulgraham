@@ -1,7 +1,8 @@
 # unit test output
 coverage.out
 
-# config file
+# config files
+etc/config/config.json
 samconfig.toml
 
 # SAM-generated resources
