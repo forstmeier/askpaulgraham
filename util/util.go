@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 
@@ -69,4 +71,11 @@ func SendResponse(statusCode int, payload interface{}, message string) (events.A
 
 func logMessage(key string, value interface{}) {
 	log.Printf(`{"%s": "%+v"}`, key, value)
+}
+
+// GetIDFromURL returns the ID from the essay URL path.
+func GetIDFromURL(url string) string {
+	_, file := path.Split(url)
+	id := strings.Replace(file, ".html", "", -1)
+	return id
 }

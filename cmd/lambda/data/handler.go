@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"path"
 	"strings"
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
@@ -35,8 +34,7 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 				continue
 			}
 
-			_, file := path.Split(item.Link)
-			id := strings.Replace(file, ".html", "", -1)
+			id := util.GetIDFromURL(item.Link)
 			if _, ok := oldIDsMap[id]; !ok {
 				text, err := cntClient.GetText(ctx, item.Link)
 				if err != nil {

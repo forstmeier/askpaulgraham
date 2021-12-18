@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
+	"github.com/forstmeier/askpaulgraham/util"
 )
 
 const (
@@ -108,9 +108,7 @@ func main() {
 					log.Fatalf("error getting summary: %v", err)
 				}
 
-				_, file := path.Split(item.Link)
-				id := strings.Replace(file, ".html", "", -1)
-
+				id := util.GetIDFromURL(item.Link)
 				summaries = append(summaries, summaryJSON{
 					ID:      id,
 					URL:     item.Link,

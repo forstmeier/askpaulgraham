@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -19,6 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
+	"github.com/forstmeier/askpaulgraham/util"
 )
 
 const (
@@ -121,9 +121,7 @@ func main() {
 					log.Fatalf("error getting text: %v", err)
 				}
 
-				_, file := path.Split(item.Link)
-				id := strings.Replace(file, ".html", "", -1)
-
+				id := util.GetIDFromURL(item.Link)
 				if err := encoder.Encode(answerJSON{
 					Text:     *text,
 					Metadata: id,
