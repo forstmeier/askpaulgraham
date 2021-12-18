@@ -60,7 +60,7 @@ func main() {
 	}
 
 	config := util.Config{}
-	configContent, err := ioutil.ReadFile("samconfig.toml")
+	configContent, err := ioutil.ReadFile("etc/config/config.json")
 	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
 	}

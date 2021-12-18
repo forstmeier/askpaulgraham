@@ -11,9 +11,9 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
+	"github.com/forstmeier/askpaulgraham/pkg/db"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
 	"github.com/forstmeier/askpaulgraham/util"
 )
@@ -63,7 +63,7 @@ func main() {
 	}
 
 	config := util.Config{}
-	configContent, err := os.ReadFile("samconfig.toml")
+	configContent, err := os.ReadFile("etc/config/config.json")
 	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
 	}
@@ -79,7 +79,17 @@ func main() {
 	}
 
 	cntClient := cnt.New()
-	nlpClient := nlp.New(newSession, config.OpenAI.APIKey, config.AWS.S3.DataBucketName)
+	nlpClient := nlp.New(
+		newSession,
+		config.OpenAI.APIKey,
+		config.AWS.S3.DataBucketName,
+	)
+	dbClient := db.New(
+		newSession,
+		config.AWS.S3.DataBucketName,
+		config.AWS.DynamoDB.QuestionsTableName,
+		config.AWS.DynamoDB.SummariesTableName,
+	)
 
 	if *action == getAction {
 		items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")
@@ -143,43 +153,16 @@ func main() {
 			log.Fatalf("error unmarshalling summaries file: %v", err)
 		}
 
-		putRequests := []*dynamodb.WriteRequest{}
+		summariesData := []db.Data{}
 		for _, item := range summaries.Items {
-			putRequests = append(putRequests, &dynamodb.WriteRequest{
-				PutRequest: &dynamodb.PutRequest{
-					Item: map[string]*dynamodb.AttributeValue{
-						"id": {
-							S: aws.String(item.ID),
-						},
-						"url": {
-							S: aws.String(item.URL),
-						},
-						"title": {
-							S: aws.String(item.Title),
-						},
-						"summary": {
-							S: aws.String(item.Summary),
-						},
-					},
-				},
+			summariesData = append(summariesData, db.Data{
+				ID:      item.ID,
+				URL:     item.URL,
+				Title:   item.Title,
+				Summary: item.Summary,
 			})
 		}
-
-		dynamoDBClient := dynamodb.New(newSession)
-
-		summariesTableName := ""
-		tables, err := dynamoDBClient.ListTables(&dynamodb.ListTablesInput{})
-		for _, tableName := range tables.TableNames {
-			if strings.Contains(*tableName, "summariesTable") {
-				summariesTableName = *tableName
-			}
-		}
-		_, err = dynamoDBClient.BatchWriteItem(&dynamodb.BatchWriteItemInput{
-			RequestItems: map[string][]*dynamodb.WriteRequest{
-				summariesTableName: putRequests,
-			},
-		})
-		if err != nil {
+		if err := dbClient.StoreSummaries(ctx, summariesData); err != nil {
 			log.Fatalf("error batch writing summaries: %v", err)
 		}
 	}
