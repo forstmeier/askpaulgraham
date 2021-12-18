@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/s3"
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
@@ -87,7 +85,6 @@ func main() {
 
 	cntClient := cnt.New()
 	nlpClient := nlp.New(newSession, config.OpenAIAPIKey, config.DataBucket)
-	s3Client := s3.New(newSession)
 
 	if *action == getAction {
 		items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")
@@ -171,14 +168,6 @@ func main() {
 					},
 				},
 			})
-
-			if _, err := s3Client.PutObject(&s3.PutObjectInput{
-				Bucket: aws.String(config.DataBucket),
-				Key:    aws.String(fmt.Sprintf("%s.md", item.ID)),
-				Body:   strings.NewReader(item.Summary),
-			}); err != nil {
-				log.Fatalf("error putting summary markdown file: %v", err)
-			}
 		}
 
 		dynamoDBClient := dynamodb.New(newSession)
