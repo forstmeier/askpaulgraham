@@ -166,7 +166,7 @@ func Test_handler(t *testing.T) {
 				mockGetAnswersError:  test.mockGetAnswersError,
 			}
 
-			handlerFunc := handler(d, n)
+			handlerFunc := handler(d, n, "jwt_signing_key")
 
 			response, _ := handlerFunc(context.Background(), test.request)
 

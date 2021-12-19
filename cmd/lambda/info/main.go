@@ -30,5 +30,5 @@ func main() {
 		os.Getenv("DATA_BUCKET_NAME"),
 	)
 
-	lambda.Start(handler(dbClient, nlpClient))
+	lambda.Start(handler(dbClient, nlpClient, os.Getenv("JWT_SIGNING_KEY")))
 }

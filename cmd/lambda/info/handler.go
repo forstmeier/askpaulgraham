@@ -17,9 +17,18 @@ type requestPayload struct {
 	Question string `json:"question"`
 }
 
-func handler(dbClient db.Databaser, nlpClient nlp.NLPer) func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		util.Log("REQUEST", request)
+
+		// NOTE: this will be added back in once the UI is completed
+		// if err := util.ValidateToken(request.Headers["Token"], jwtSigningKey); err != nil {
+		// 	return util.SendResponse(
+		// 		http.StatusUnauthorized,
+		// 		err,
+		// 		"VALIDATE_TOKEN_ERROR",
+		// 	)
+		// }
 
 		switch request.HTTPMethod {
 		case "GET":

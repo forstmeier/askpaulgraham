@@ -2,13 +2,16 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/forstmeier/askpaulgraham/pkg/db"
 )
@@ -106,4 +109,43 @@ func GetIDFromURL(url string) string {
 	_, file := path.Split(url)
 	id := strings.Replace(file, ".html", "", -1)
 	return id
+}
+
+type customClaims struct {
+	Authorized bool   `json:"authorized"`
+	Client     string `json:"client"`
+	Exp        int64  `json:"exp"`
+	jwt.RegisteredClaims
+}
+
+// ValidateToken evaluates the JWT received by the API.
+func ValidateToken(tokenValue, signingKey string) error {
+	token, err := jwt.ParseWithClaims(tokenValue, &customClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return "", errors.New("validate token: invalid signing method")
+		}
+		return signingKey, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	if !token.Valid {
+		return errors.New("validate token: invalid token")
+	}
+
+	claims := token.Claims.(*customClaims)
+	if !claims.Authorized {
+		return errors.New("validate token: unauthorized claim")
+	}
+
+	if claims.Client != "askpaulgraham-ui" {
+		return errors.New("validate token: invalid client claim")
+	}
+
+	if claims.Exp < time.Now().Add(time.Second*30).Unix() {
+		return errors.New("validate token: expired claim")
+	}
+
+	return nil
 }

@@ -17,6 +17,9 @@ Parameters:
       - 'true'
       - 'false'
     Default: 'false'
+  JWTSigningKey:
+    Type: String
+    Description: JWT signing key
 
 Mappings:
   SchedulerToggle:
@@ -70,6 +73,8 @@ Resources:
             Ref: summariesTable
           OPENAI_API_KEY:
             Ref: OpenAIAPIKey
+          JWT_SIGNING_KEY:
+            Ref: JWTSigningKey
       Events:
         QuestionEvent:
           Type: Api
