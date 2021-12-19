@@ -160,7 +160,11 @@ func main() {
 				if storedAnswer.Metadata == answer.Metadata {
 					break
 				} else if len(storedAnswers) == i+1 {
-					answers = append(answers, storedAnswer)
+					answers = append(answers, answer)
+
+					if err := dbClient.StoreText(ctx, answer.Metadata, answer.Text); err != nil {
+						log.Fatalf("error storing markdown text file: %v", err)
+					}
 				}
 			}
 
