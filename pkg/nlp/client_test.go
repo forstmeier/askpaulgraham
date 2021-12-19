@@ -53,17 +53,12 @@ func (m *mockHelper) sendRequest(method, url string, body io.Reader, payload int
 }
 
 type mockS3Client struct {
-	getObjectOutput *s3.GetObjectOutput
-	getObjectError  error
-	putObjectError  error
+	mockGetObjectOutput *s3.GetObjectOutput
+	mockGetObjectError  error
 }
 
 func (m *mockS3Client) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
-	return m.getObjectOutput, m.getObjectError
-}
-
-func (m *mockS3Client) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
-	return nil, m.putObjectError
+	return m.mockGetObjectOutput, m.mockGetObjectError
 }
 
 func TestGetSummary(t *testing.T) {
@@ -124,46 +119,16 @@ func TestGetSummary(t *testing.T) {
 }
 
 func TestSetAnswer(t *testing.T) {
-	getFilesErr := errors.New("mock get files error")
-	deleteFileErr := errors.New("mock delete file error")
-	getObjectErr := errors.New("mock get object error")
+	mockGetObjectErr := errors.New("mock get object error")
 	setAnswersErr := errors.New("mock set answers error")
 
 	tests := []struct {
-		description     string
-		responses       []response
-		getObjectOutput *s3.GetObjectOutput
-		getObjectError  error
-		error           error
+		description         string
+		responses           []response
+		mockGetObjectOutput *s3.GetObjectOutput
+		mockGetObjectError  error
+		error               error
 	}{
-		{
-			description: "error getting files",
-			responses: []response{
-				{
-					body:  nil,
-					error: getFilesErr,
-				},
-			},
-			getObjectOutput: nil,
-			getObjectError:  nil,
-			error:           getFilesErr,
-		},
-		{
-			description: "error deleting file",
-			responses: []response{
-				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
-					error: nil,
-				},
-				{
-					body:  nil,
-					error: deleteFileErr,
-				},
-			},
-			getObjectOutput: nil,
-			getObjectError:  nil,
-			error:           deleteFileErr,
-		},
 		{
 			description: "error getting object",
 			responses: []response{
@@ -176,74 +141,54 @@ func TestSetAnswer(t *testing.T) {
 					error: nil,
 				},
 			},
-			getObjectOutput: nil,
-			getObjectError:  getObjectErr,
-			error:           getObjectErr,
+			mockGetObjectOutput: nil,
+			mockGetObjectError:  mockGetObjectErr,
+			error:               mockGetObjectErr,
 		},
 		{
 			description: "error setting answers",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
-					error: nil,
-				},
-				{
-					body:  nil,
-					error: nil,
-				},
-				{
 					body:  nil,
 					error: setAnswersErr,
 				},
 			},
-			getObjectOutput: &s3.GetObjectOutput{
+			mockGetObjectOutput: &s3.GetObjectOutput{
 				Body: ioutil.NopCloser(bytes.NewReader([]byte(`{"text": "first text", "metadata": "first_id"}
 		{"text": "second text", "metadata": "second_id"}`))),
 			},
-			getObjectError: nil,
-			error:          setAnswersErr,
+			mockGetObjectError: nil,
+			error:              setAnswersErr,
 		},
 		{
 			description: "successful invocation",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
-					error: nil,
-				},
-				{
-					body:  nil,
-					error: nil,
-				},
-				{
 					body:  nil,
 					error: nil,
 				},
 			},
-			getObjectOutput: &s3.GetObjectOutput{
+			mockGetObjectOutput: &s3.GetObjectOutput{
 				Body: ioutil.NopCloser(bytes.NewReader([]byte(`{"text": "first text", "metadata": "first_id"}
 		{"text": "second text", "metadata": "second_id"}`))),
 			},
-			getObjectError: nil,
-			error:          nil,
+			mockGetObjectError: nil,
+			error:              nil,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			h := &mockHelper{
-				t:         t,
-				responses: test.responses,
-			}
-
-			s := &mockS3Client{
-				getObjectOutput: test.getObjectOutput,
-				getObjectError:  test.getObjectError,
-			}
-
 			c := &Client{
-				helper:     h,
+				helper: &mockHelper{
+					t:         t,
+					responses: test.responses,
+				},
 				bucketName: "bucket_name",
-				s3Client:   s,
+				s3Client: &mockS3Client{
+					mockGetObjectOutput: test.mockGetObjectOutput,
+					mockGetObjectError:  test.mockGetObjectError,
+				},
 			}
 
 			err := c.SetAnswer(context.Background(), "mock_id", "mock answer")

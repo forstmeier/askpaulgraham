@@ -33,7 +33,7 @@ type Client struct {
 
 type s3Client interface {
 	GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error)
-	PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
+	// PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
 }
 
 // New generates a pointer instance of Client.
@@ -112,38 +112,6 @@ type answerJSON struct {
 
 // SetAnswer implements the nlp.NLPer.SetAnswer method.
 func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
-	getFilesRespBody := getFilesRespJSON{}
-	if err := c.helper.sendRequest(
-		http.MethodGet,
-		"https://api.openai.com/v1/files",
-		nil,
-		&getFilesRespBody,
-		map[string]string{
-			"Content-Type": "application/json",
-		},
-	); err != nil {
-		return err
-	}
-
-	fileID := ""
-	for _, file := range getFilesRespBody.Data {
-		if file.Name == answersFilename {
-			fileID = file.ID
-		}
-	}
-
-	if fileID != "" {
-		if err := c.helper.sendRequest(
-			http.MethodDelete,
-			fmt.Sprintf("https://api.openai.com/v1/files/%s", fileID),
-			nil,
-			nil,
-			nil,
-		); err != nil {
-			return err
-		}
-	}
-
 	getAnswersResp, err := c.s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: &c.bucketName,
 		Key:    aws.String(answersFilename),

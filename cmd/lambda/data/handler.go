@@ -77,7 +77,6 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 				}
 
 				for i, answer := range answers {
-
 					if answer.Metadata == id {
 						break
 					} else if len(answers) == i+1 {
@@ -86,7 +85,6 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 							Metadata: id,
 						})
 					}
-
 				}
 
 				if err := dbClient.StoreAnswers(ctx, answers); err != nil {
