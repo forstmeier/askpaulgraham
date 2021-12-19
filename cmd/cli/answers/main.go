@@ -18,6 +18,7 @@ import (
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
 	"github.com/forstmeier/askpaulgraham/pkg/db"
+	"github.com/forstmeier/askpaulgraham/pkg/nlp"
 	"github.com/forstmeier/askpaulgraham/util"
 )
 
@@ -76,6 +77,11 @@ func main() {
 		config.AWS.S3.DataBucketName,
 		config.AWS.DynamoDB.QuestionsTableName,
 		config.AWS.DynamoDB.SummariesTableName,
+	)
+	nlpClient := nlp.New(
+		newSession,
+		config.OpenAI.APIKey,
+		config.AWS.S3.DataBucketName,
 	)
 
 	if *action == getAction {
@@ -165,6 +171,10 @@ func main() {
 					if err := dbClient.StoreText(ctx, answer.Metadata, answer.Text); err != nil {
 						log.Fatalf("error storing markdown text file: %v", err)
 					}
+
+					if err := nlpClient.SetAnswer(ctx, answer.Metadata, answer.Text); err != nil {
+						log.Fatalf("error setting answer: %v", err)
+					}
 				}
 			}
 
@@ -179,6 +189,29 @@ func main() {
 				}
 
 				answers = append(answers, answer)
+			}
+
+			items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")
+			if err != nil {
+				log.Fatalf("error getting items: %v", err)
+			}
+
+			itemIDsMap := map[string]struct{}{}
+			for _, item := range items {
+				if strings.Contains(item.Link, "1638975042") {
+					continue
+				}
+
+				id := util.GetIDFromURL(item.Link)
+				itemIDsMap[id] = struct{}{}
+			}
+
+			for _, answer := range answers {
+				if _, ok := itemIDsMap[answer.Metadata]; !ok {
+					if err := nlpClient.SetAnswer(ctx, answer.Metadata, answer.Text); err != nil {
+						log.Fatalf("error setting answer: %v", err)
+					}
+				}
 			}
 		}
 
