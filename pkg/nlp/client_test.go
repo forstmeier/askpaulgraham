@@ -128,14 +128,12 @@ func TestSetAnswer(t *testing.T) {
 	deleteFileErr := errors.New("mock delete file error")
 	getObjectErr := errors.New("mock get object error")
 	setAnswersErr := errors.New("mock set answers error")
-	putObjectErr := errors.New("mock put object error")
 
 	tests := []struct {
 		description     string
 		responses       []response
 		getObjectOutput *s3.GetObjectOutput
 		getObjectError  error
-		putObjectError  error
 		error           error
 	}{
 		{
@@ -148,7 +146,6 @@ func TestSetAnswer(t *testing.T) {
 			},
 			getObjectOutput: nil,
 			getObjectError:  nil,
-			putObjectError:  nil,
 			error:           getFilesErr,
 		},
 		{
@@ -165,7 +162,6 @@ func TestSetAnswer(t *testing.T) {
 			},
 			getObjectOutput: nil,
 			getObjectError:  nil,
-			putObjectError:  nil,
 			error:           deleteFileErr,
 		},
 		{
@@ -182,7 +178,6 @@ func TestSetAnswer(t *testing.T) {
 			},
 			getObjectOutput: nil,
 			getObjectError:  getObjectErr,
-			putObjectError:  nil,
 			error:           getObjectErr,
 		},
 		{
@@ -206,32 +201,7 @@ func TestSetAnswer(t *testing.T) {
 		{"text": "second text", "metadata": "second_id"}`))),
 			},
 			getObjectError: nil,
-			putObjectError: nil,
 			error:          setAnswersErr,
-		},
-		{
-			description: "error putting object",
-			responses: []response{
-				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
-					error: nil,
-				},
-				{
-					body:  nil,
-					error: nil,
-				},
-				{
-					body:  nil,
-					error: nil,
-				},
-			},
-			getObjectOutput: &s3.GetObjectOutput{
-				Body: ioutil.NopCloser(bytes.NewReader([]byte(`{"text": "first text", "metadata": "first_id"}
-		{"text": "second text", "metadata": "second_id"}`))),
-			},
-			getObjectError: nil,
-			putObjectError: putObjectErr,
-			error:          putObjectErr,
 		},
 		{
 			description: "successful invocation",
@@ -254,7 +224,6 @@ func TestSetAnswer(t *testing.T) {
 		{"text": "second text", "metadata": "second_id"}`))),
 			},
 			getObjectError: nil,
-			putObjectError: nil,
 			error:          nil,
 		},
 	}
@@ -269,7 +238,6 @@ func TestSetAnswer(t *testing.T) {
 			s := &mockS3Client{
 				getObjectOutput: test.getObjectOutput,
 				getObjectError:  test.getObjectError,
-				putObjectError:  test.putObjectError,
 			}
 
 			c := &Client{

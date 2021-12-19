@@ -69,6 +69,30 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					util.Log("SET_ANSWER_ERROR", err)
 					return err
 				}
+
+				answers, err := dbClient.GetAnswers(ctx)
+				if err != nil {
+					util.Log("GET_ANSWERS_ERROR", err)
+					return err
+				}
+
+				for i, answer := range answers {
+
+					if answer.Metadata == id {
+						break
+					} else if len(answers) == i+1 {
+						answers = append(answers, db.Answer{
+							Text:     *text,
+							Metadata: id,
+						})
+					}
+
+				}
+
+				if err := dbClient.StoreAnswers(ctx, answers); err != nil {
+					util.Log("STORE_ANSWERS_ERROR", err)
+					return err
+				}
 			}
 		}
 

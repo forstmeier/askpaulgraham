@@ -200,7 +200,6 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 		return err
 	}
 
-	s3AnswersBody := answersBody
 	_, err = io.Copy(fileWriter, &answersBody)
 	if err != nil {
 		return err
@@ -217,15 +216,6 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 			"Content-Type": multipartWriter.FormDataContentType(),
 		},
 	); err != nil {
-		return err
-	}
-
-	_, err = c.s3Client.PutObject(&s3.PutObjectInput{
-		Bucket: &c.bucketName,
-		Key:    aws.String(answersFilename),
-		Body:   bytes.NewReader(s3AnswersBody.Bytes()),
-	})
-	if err != nil {
 		return err
 	}
 
