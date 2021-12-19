@@ -70,7 +70,7 @@ func (c *Client) GetIDs(ctx context.Context) ([]string, error) {
 
 // GetSummaries implements the db.Databaser.GetSummaries
 // method using AWS DynamoDB.
-func (c *Client) GetSummaries(ctx context.Context) ([]Data, error) {
+func (c *Client) GetSummaries(ctx context.Context) ([]Summary, error) {
 	scanOutput, err := c.dynamoDBClient.Scan(&dynamodb.ScanInput{
 		TableName: &c.summariesTableName,
 	})
@@ -78,9 +78,9 @@ func (c *Client) GetSummaries(ctx context.Context) ([]Data, error) {
 		return nil, err
 	}
 
-	datas := make([]Data, len(scanOutput.Items))
+	datas := make([]Summary, len(scanOutput.Items))
 	for i, item := range scanOutput.Items {
-		datas[i] = Data{
+		datas[i] = Summary{
 			ID:      *item["id"].S,
 			URL:     *item["url"].S,
 			Title:   *item["title"].S,
@@ -93,7 +93,7 @@ func (c *Client) GetSummaries(ctx context.Context) ([]Data, error) {
 
 // StoreSummaries implements the db.Databaser.StoreSummaries
 // method using AWS DynamoDB.
-func (c *Client) StoreSummaries(ctx context.Context, summaries []Data) error {
+func (c *Client) StoreSummaries(ctx context.Context, summaries []Summary) error {
 	chunk := 25
 	for i := 0; i < len(summaries); i += chunk {
 		end := i + chunk

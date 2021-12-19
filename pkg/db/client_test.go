@@ -116,14 +116,14 @@ func TestGetSummaries(t *testing.T) {
 		description    string
 		mockScanOutput *dynamodb.ScanOutput
 		mockScanError  error
-		datas          []Data
+		summaries      []Summary
 		error          error
 	}{
 		{
 			description:    "error scanning table",
 			mockScanOutput: nil,
 			mockScanError:  mockScanErr,
-			datas:          nil,
+			summaries:      nil,
 			error:          mockScanErr,
 		},
 		{
@@ -147,7 +147,7 @@ func TestGetSummaries(t *testing.T) {
 				},
 			},
 			mockScanError: nil,
-			datas: []Data{
+			summaries: []Summary{
 				{
 					ID:      "mock_id",
 					URL:     "mock_url",
@@ -168,14 +168,14 @@ func TestGetSummaries(t *testing.T) {
 				},
 			}
 
-			datas, err := c.GetSummaries(context.Background())
+			summaries, err := c.GetSummaries(context.Background())
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
 			}
 
-			if !reflect.DeepEqual(datas, test.datas) {
-				t.Errorf("incorrect data, received: %v, expected: %v", datas, test.datas)
+			if !reflect.DeepEqual(summaries, test.summaries) {
+				t.Errorf("incorrect summaries, received: %v, expected: %v", summaries, test.summaries)
 			}
 		})
 	}
@@ -209,7 +209,7 @@ func TestStoreSummaries(t *testing.T) {
 				},
 			}
 
-			err := c.StoreSummaries(context.Background(), []Data{
+			err := c.StoreSummaries(context.Background(), []Summary{
 				{
 					ID:      "mock_id",
 					URL:     "url.com",

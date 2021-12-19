@@ -33,11 +33,6 @@ const (
 	bulkSize   = "bulk"
 )
 
-type answerJSON struct {
-	Text     string `json:"text"`
-	Metadata string `json:"metadata"`
-}
-
 func main() {
 	ctx := context.Background()
 
@@ -91,7 +86,7 @@ func main() {
 				log.Fatalf("error getting text: %v", err)
 			}
 
-			bodyBytes, err := json.Marshal(answerJSON{
+			bodyBytes, err := json.Marshal(db.Answer{
 				Metadata: *postID,
 				Text:     *text,
 			})
@@ -122,7 +117,7 @@ func main() {
 				}
 
 				id := util.GetIDFromURL(item.Link)
-				if err := encoder.Encode(answerJSON{
+				if err := encoder.Encode(db.Answer{
 					Text:     *text,
 					Metadata: id,
 				}); err != nil {

@@ -6,16 +6,16 @@ import "context"
 // storage layer of the application.
 type Databaser interface {
 	GetIDs(ctx context.Context) ([]string, error)
-	GetSummaries(ctx context.Context) ([]Data, error)
-	StoreSummaries(ctx context.Context, summaries []Data) error
+	GetSummaries(ctx context.Context) ([]Summary, error)
+	StoreSummaries(ctx context.Context, summaries []Summary) error
 	StoreText(ctx context.Context, id, text string) error
 	GetAnswers(ctx context.Context) ([]Answer, error)
 	StoreAnswers(ctx context.Context, answers []Answer) error
 	StoreQuestion(ctx context.Context, question string) error
 }
 
-// Data represents a row in the summaries table.
-type Data struct {
+// Summary represents a row in the summaries table.
+type Summary struct {
 	ID      string `json:"id"`
 	URL     string `json:"url"`
 	Title   string `json:"title"`

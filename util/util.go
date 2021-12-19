@@ -59,10 +59,10 @@ func SendResponse(statusCode int, payload interface{}, message string) (events.A
 			Error: payload.(error).Error(),
 		}
 
-	case []db.Data:
+	case []db.Summary:
 		body = struct {
-			Message   string    `json:"message"`
-			Summaries []db.Data `json:"summaries"`
+			Message   string       `json:"message"`
+			Summaries []db.Summary `json:"summaries"`
 		}{
 			Message:   "success",
 			Summaries: payloadValue,

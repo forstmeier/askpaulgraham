@@ -20,8 +20,8 @@ func TestMain(m *testing.M) {
 }
 
 type mockDBClient struct {
-	mockGetDataOutput       []db.Data
-	mockGetDataError        error
+	mockGetSummariesOutput  []db.Summary
+	mockGetSummariesError   error
 	mockStoreQuestionsError error
 }
 
@@ -29,11 +29,11 @@ func (m *mockDBClient) GetIDs(ctx context.Context) ([]string, error) {
 	return nil, nil
 }
 
-func (m *mockDBClient) GetSummaries(ctx context.Context) ([]db.Data, error) {
-	return m.mockGetDataOutput, m.mockGetDataError
+func (m *mockDBClient) GetSummaries(ctx context.Context) ([]db.Summary, error) {
+	return m.mockGetSummariesOutput, m.mockGetSummariesError
 }
 
-func (m *mockDBClient) StoreSummaries(ctx context.Context, summaries []db.Data) error {
+func (m *mockDBClient) StoreSummaries(ctx context.Context, summaries []db.Summary) error {
 	return nil
 }
 
@@ -74,8 +74,8 @@ func Test_handler(t *testing.T) {
 	tests := []struct {
 		description             string
 		request                 events.APIGatewayProxyRequest
-		mockGetDataOutput       []db.Data
-		mockGetDataError        error
+		mockGetSummariesOutput  []db.Summary
+		mockGetSummariesError   error
 		mockStoreQuestionsError error
 		mockGetAnswersOutput    []string
 		mockGetAnswersError     error
@@ -95,17 +95,17 @@ func Test_handler(t *testing.T) {
 			request: events.APIGatewayProxyRequest{
 				HTTPMethod: http.MethodGet,
 			},
-			mockGetDataOutput: nil,
-			mockGetDataError:  errors.New("mock get data error"),
-			statusCode:        http.StatusInternalServerError,
-			body:              `{"error":"mock get data error"}`,
+			mockGetSummariesOutput: nil,
+			mockGetSummariesError:  errors.New("mock get data error"),
+			statusCode:             http.StatusInternalServerError,
+			body:                   `{"error":"mock get data error"}`,
 		},
 		{
 			description: "successful get invocation",
 			request: events.APIGatewayProxyRequest{
 				HTTPMethod: http.MethodGet,
 			},
-			mockGetDataOutput: []db.Data{
+			mockGetSummariesOutput: []db.Summary{
 				{
 					ID:      "mock_id",
 					URL:     "mock_url",
@@ -113,9 +113,9 @@ func Test_handler(t *testing.T) {
 					Summary: "mock_summary",
 				},
 			},
-			mockGetDataError: nil,
-			statusCode:       http.StatusOK,
-			body:             `{"message":"success","summaries":[{"id":"mock_id","url":"mock_url","title":"mock_title","summary":"mock_summary"}]}`,
+			mockGetSummariesError: nil,
+			statusCode:            http.StatusOK,
+			body:                  `{"message":"success","summaries":[{"id":"mock_id","url":"mock_url","title":"mock_title","summary":"mock_summary"}]}`,
 		},
 		{
 			description: "error storing question",
@@ -156,8 +156,8 @@ func Test_handler(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			d := &mockDBClient{
-				mockGetDataOutput:       test.mockGetDataOutput,
-				mockGetDataError:        test.mockGetDataError,
+				mockGetSummariesOutput:  test.mockGetSummariesOutput,
+				mockGetSummariesError:   test.mockGetSummariesError,
 				mockStoreQuestionsError: test.mockStoreQuestionsError,
 			}
 

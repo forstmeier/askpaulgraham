@@ -48,7 +48,7 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					return err
 				}
 
-				if err := dbClient.StoreSummaries(ctx, []db.Data{
+				if err := dbClient.StoreSummaries(ctx, []db.Summary{
 					{
 						ID:      id,
 						URL:     item.Link,

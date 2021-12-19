@@ -153,9 +153,9 @@ func main() {
 			log.Fatalf("error unmarshalling summaries file: %v", err)
 		}
 
-		summariesData := []db.Data{}
+		summariesData := []db.Summary{}
 		for _, item := range summaries.Items {
-			summariesData = append(summariesData, db.Data{
+			summariesData = append(summariesData, db.Summary{
 				ID:      item.ID,
 				URL:     item.URL,
 				Title:   item.Title,
