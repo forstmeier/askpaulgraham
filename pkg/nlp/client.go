@@ -18,7 +18,7 @@ import (
 const answersFilename = "answers.jsonl"
 
 const (
-	summaryModel = "davinci"
+	summaryModel = "curie"
 	answersModel = "curie"
 )
 
@@ -68,6 +68,13 @@ type getSummaryRespChoiceJSON struct {
 
 // GetSummary implements the nlp.NLPer.GetSummary method.
 func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
+	// check to work within OpenAI token limits
+	wordCount := strings.Split(text, " ")
+	if len(wordCount) > 1500 {
+		message := "Surpassed maximum word count permitted by OpenAI"
+		return &message, nil
+	}
+
 	data, err := json.Marshal(getSummaryReqJSON{
 		Prompt:           text + "\n\ntl;dr",
 		MaxTokens:        60,

@@ -16,7 +16,7 @@ import (
 // Config represents the config.json file.
 type Config struct {
 	AWS    AWS    `json:"aws"`
-	OpenAI OpenAI `json:"openai"`
+	OpenAI OpenAI `json:"open_ai"`
 }
 
 // AWS represents aws config.json file field.

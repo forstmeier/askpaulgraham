@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/BurntSushi/toml"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 
@@ -19,8 +18,8 @@ import (
 )
 
 const (
-	summaryFilename   = "summary.csv"
-	summariesFilename = "summaries.csv"
+	summaryFilename   = "summary.json"
+	summariesFilename = "summaries.json"
 )
 
 const (
@@ -58,8 +57,8 @@ func main() {
 		log.Fatalf("error invalid size: %s", *size)
 	}
 
-	if *size == singleSize && *postID == "" {
-		log.Fatal("error invalid arguments: argument 'id' is required for 'single' operation")
+	if *size == singleSize && *action == getAction && *postID == "" {
+		log.Fatal("error invalid arguments: argument 'id' is required for 'single' 'get' operation")
 	}
 
 	config := util.Config{}
@@ -67,7 +66,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
 	}
-	if err := toml.Unmarshal(configContent, &config); err != nil {
+	if err := json.Unmarshal(configContent, &config); err != nil {
 		log.Fatalf("error unmarshalling config file: %v", err)
 	}
 

@@ -12,7 +12,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/BurntSushi/toml"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 
@@ -51,8 +50,8 @@ func main() {
 		log.Fatalf("invalid size: %s", *size)
 	}
 
-	if *size == singleSize && *postID == "" {
-		log.Fatal("error invalid arguments: argument 'id' is required for 'single' operation")
+	if *size == singleSize && *action == getAction && *postID == "" {
+		log.Fatal("error invalid arguments: argument 'id' is required for 'single' 'get' operation")
 	}
 
 	config := util.Config{}
@@ -60,7 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config file: %v", err)
 	}
-	if err := toml.Unmarshal(configContent, &config); err != nil {
+	if err := json.Unmarshal(configContent, &config); err != nil {
 		log.Fatalf("error unmarshalling config file: %v", err)
 	}
 
@@ -162,20 +161,19 @@ func main() {
 				log.Fatalf("error unmarshalling local answer file: %v", err)
 			}
 
-			for i, storedAnswer := range storedAnswers {
-				if storedAnswer.Metadata == answer.Metadata {
-					break
-				} else if len(storedAnswers) == i+1 {
-					answers = append(answers, answer)
-
-					if err := dbClient.StoreText(ctx, answer.Metadata, answer.Text); err != nil {
-						log.Fatalf("error storing markdown text file: %v", err)
-					}
-
-					if err := nlpClient.SetAnswer(ctx, answer.Metadata, answer.Text); err != nil {
-						log.Fatalf("error setting answer: %v", err)
-					}
+			answers = append(answers, answer)
+			for _, storedAnswer := range storedAnswers {
+				if storedAnswer.Metadata != answer.Metadata {
+					answers = append(answers, storedAnswer)
 				}
+			}
+
+			if err := dbClient.StoreText(ctx, answer.Metadata, answer.Text); err != nil {
+				log.Fatalf("error storing markdown text file: %v", err)
+			}
+
+			if err := nlpClient.SetAnswer(ctx, answer.Metadata, answer.Text); err != nil {
+				log.Fatalf("error setting answer: %v", err)
 			}
 
 		} else if *size == bulkSize {
