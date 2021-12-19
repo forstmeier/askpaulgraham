@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -32,7 +33,13 @@ func (m *mockDynamoDBClient) PutItem(input *dynamodb.PutItemInput) (*dynamodb.Pu
 }
 
 type mockS3Client struct {
-	mockPutObjectError error
+	mockGetObjectOutput *s3.GetObjectOutput
+	mockGetObjectError  error
+	mockPutObjectError  error
+}
+
+func (m *mockS3Client) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+	return m.mockGetObjectOutput, m.mockGetObjectError
 }
 
 func (m *mockS3Client) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
@@ -82,13 +89,11 @@ func TestGetIDs(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			d := &mockDynamoDBClient{
-				mockScanOutput: test.mockScanOutput,
-				mockScanError:  test.mockScanError,
-			}
-
 			c := &Client{
-				dynamoDBClient: d,
+				dynamoDBClient: &mockDynamoDBClient{
+					mockScanOutput: test.mockScanOutput,
+					mockScanError:  test.mockScanError,
+				},
 			}
 
 			ids, err := c.GetIDs(context.Background())
@@ -104,7 +109,7 @@ func TestGetIDs(t *testing.T) {
 	}
 }
 
-func TestGetData(t *testing.T) {
+func TestGetSummaries(t *testing.T) {
 	mockScanErr := errors.New("mock scan error")
 
 	tests := []struct {
@@ -156,13 +161,11 @@ func TestGetData(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			d := &mockDynamoDBClient{
-				mockScanOutput: test.mockScanOutput,
-				mockScanError:  test.mockScanError,
-			}
-
 			c := &Client{
-				dynamoDBClient: d,
+				dynamoDBClient: &mockDynamoDBClient{
+					mockScanOutput: test.mockScanOutput,
+					mockScanError:  test.mockScanError,
+				},
 			}
 
 			datas, err := c.GetSummaries(context.Background())
@@ -200,12 +203,10 @@ func TestStoreSummaries(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			d := &mockDynamoDBClient{
-				mockBatchWriteItemError: test.mockBatchWriteItemError,
-			}
-
 			c := &Client{
-				dynamoDBClient: d,
+				dynamoDBClient: &mockDynamoDBClient{
+					mockBatchWriteItemError: test.mockBatchWriteItemError,
+				},
 			}
 
 			err := c.StoreSummaries(context.Background(), []Data{
@@ -246,15 +247,110 @@ func TestStoreText(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			s := &mockS3Client{
-				mockPutObjectError: test.mockPutObjectError,
-			}
-
 			c := &Client{
-				s3Client: s,
+				s3Client: &mockS3Client{
+					mockPutObjectError: test.mockPutObjectError,
+				},
 			}
 
 			err := c.StoreText(context.Background(), "mock_id", "full text")
+
+			if err != test.error {
+				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
+			}
+		})
+	}
+}
+
+func TestGetAnswers(t *testing.T) {
+	mockGetObjectErr := errors.New("mock get object error")
+
+	tests := []struct {
+		description         string
+		mockGetObjectOutput *s3.GetObjectOutput
+		mockGetObjectError  error
+		answers             []Answer
+		error               error
+	}{
+		{
+			description:         "error getting object",
+			mockGetObjectOutput: nil,
+			mockGetObjectError:  mockGetObjectErr,
+			answers:             nil,
+			error:               mockGetObjectErr,
+		},
+		{
+			description: "successful invocation",
+			mockGetObjectOutput: &s3.GetObjectOutput{
+				Body: aws.ReadSeekCloser(strings.NewReader(`{"text": "example text", "metadata": "example metadata"}`)),
+			},
+			mockGetObjectError: nil,
+			answers: []Answer{
+				{
+					Text:     "example text",
+					Metadata: "example metadata",
+				},
+			},
+			error: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			c := &Client{
+				s3Client: &mockS3Client{
+					mockGetObjectOutput: test.mockGetObjectOutput,
+					mockGetObjectError:  test.mockGetObjectError,
+				},
+			}
+
+			answers, err := c.GetAnswers(context.Background())
+
+			if err != test.error {
+				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
+			}
+
+			if !reflect.DeepEqual(answers, test.answers) {
+				t.Errorf("incorrect answers, received: %v, expected: %v", answers, test.answers)
+			}
+		})
+	}
+}
+
+func TestStoreAnswers(t *testing.T) {
+	mockPutObjectErr := errors.New("mock put object error")
+
+	tests := []struct {
+		description        string
+		mockPutObjectError error
+		error              error
+	}{
+		{
+			description:        "error putting object",
+			mockPutObjectError: mockPutObjectErr,
+			error:              mockPutObjectErr,
+		},
+		{
+			description:        "successful invocation",
+			mockPutObjectError: nil,
+			error:              nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			c := &Client{
+				s3Client: &mockS3Client{
+					mockPutObjectError: test.mockPutObjectError,
+				},
+			}
+
+			err := c.StoreAnswers(context.Background(), []Answer{
+				{
+					Text:     "example text",
+					Metadata: "example metadata",
+				},
+			})
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
@@ -285,12 +381,10 @@ func TestStoreQuestion(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
-			d := &mockDynamoDBClient{
-				mockPutItemError: test.mockPutItemError,
-			}
-
 			c := &Client{
-				dynamoDBClient: d,
+				dynamoDBClient: &mockDynamoDBClient{
+					mockPutItemError: test.mockPutItemError,
+				},
 			}
 
 			err := c.StoreQuestion(context.Background(), "question")

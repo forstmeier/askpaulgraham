@@ -15,9 +15,9 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
+	"github.com/forstmeier/askpaulgraham/pkg/db"
 	"github.com/forstmeier/askpaulgraham/util"
 )
 
@@ -75,8 +75,13 @@ func main() {
 		log.Fatalf("error creating aws session: %v", err)
 	}
 
-	s3Client := s3.New(newSession)
 	cntClient := cnt.New()
+	dbClient := db.New(
+		newSession,
+		config.AWS.S3.DataBucketName,
+		config.AWS.DynamoDB.QuestionsTableName,
+		config.AWS.DynamoDB.SummariesTableName,
+	)
 
 	if *action == getAction {
 		if *size == singleSize {
@@ -138,58 +143,48 @@ func main() {
 			filename = answersFilename
 		}
 
+		answers := []db.Answer{}
+
 		bodyBytes, err := os.ReadFile(filename)
 		if err != nil {
 			log.Fatalf("error reading file: %v", err)
 		}
 
 		if *size == singleSize {
-			newAnswer := answerJSON{}
-			if err := json.Unmarshal(bodyBytes, &newAnswer); err != nil {
-				log.Fatalf("error unmarshalling answer: %v", err)
-			}
-
-			getAnswersResp, err := s3Client.GetObject(&s3.GetObjectInput{
-				Bucket: &config.AWS.S3.DataBucketName,
-				Key:    aws.String(answersFilename),
-			})
+			storedAnswers, err := dbClient.GetAnswers(ctx)
 			if err != nil {
-				log.Fatalf("error getting answers: %v", err)
+				log.Fatalf("error getting stored answers file: %v", err)
 			}
 
-			answersBody := bytes.Buffer{}
-
-			encoder := json.NewEncoder(&answersBody)
-			if err := encoder.Encode(newAnswer); err != nil {
-				log.Fatalf("error encoding new answer: %v", err)
+			answer := db.Answer{}
+			if err := json.Unmarshal(bodyBytes, &answer); err != nil {
+				log.Fatalf("error unmarshalling local answer file: %v", err)
 			}
-			decoder := json.NewDecoder(getAnswersResp.Body)
 
+			for i, storedAnswer := range storedAnswers {
+				if storedAnswer.Metadata == answer.Metadata {
+					break
+				} else if len(storedAnswers) == i+1 {
+					answers = append(answers, storedAnswer)
+				}
+			}
+
+		} else if *size == bulkSize {
+			decoder := json.NewDecoder(bytes.NewReader(bodyBytes))
 			for decoder.More() {
-				var answer answerJSON
+				answer := db.Answer{}
 				if err := decoder.Decode(&answer); err == io.EOF {
 					break
 				} else if err != nil {
 					log.Fatalf("error decoding answer: %v", err)
 				}
 
-				if newAnswer.Metadata != answer.Metadata {
-					if err := encoder.Encode(answer); err != nil {
-						log.Fatalf("error encoding old answer: %v", err)
-					}
-				}
+				answers = append(answers, answer)
 			}
-
-			bodyBytes = answersBody.Bytes()
 		}
 
-		_, err = s3Client.PutObject(&s3.PutObjectInput{
-			Bucket: &config.AWS.S3.DataBucketName,
-			Key:    aws.String(answersFilename),
-			Body:   bytes.NewReader(bodyBytes),
-		})
-		if err != nil {
-			log.Fatalf("error putting answers: %v", err)
+		if err := dbClient.StoreAnswers(ctx, answers); err != nil {
+			log.Fatalf("error storing answers file: %v", err)
 		}
 	}
 }

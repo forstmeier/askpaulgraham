@@ -1,7 +1,10 @@
 package db
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
 	"strings"
 	"time"
 
@@ -10,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
+
+const answersFilename = "answers.jsonl"
 
 var _ Databaser = &Client{}
 
@@ -35,6 +40,7 @@ func New(newSession *session.Session, bucketName, questionsTableName, summariesT
 }
 
 type s3Client interface {
+	GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 	PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
 }
 
@@ -140,6 +146,57 @@ func (c *Client) StoreText(ctx context.Context, id, text string) error {
 	})
 
 	return err
+}
+
+// GetAnswers implements the db.Databaser.GetAnswers
+// method using AWS S3.
+func (c *Client) GetAnswers(ctx context.Context) ([]Answer, error) {
+	response, err := c.s3Client.GetObject(&s3.GetObjectInput{
+		Bucket: &c.bucketName,
+		Key:    aws.String(answersFilename),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	answers := []Answer{}
+	decoder := json.NewDecoder(response.Body)
+	for decoder.More() {
+		var answer Answer
+		if err := decoder.Decode(&answer); err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		answers = append(answers, answer)
+	}
+
+	return answers, nil
+}
+
+// StoreAnswers implements the db.Databaser.StoreAnswers
+// method using AWS S3.
+func (c *Client) StoreAnswers(ctx context.Context, answers []Answer) error {
+	answersBody := bytes.Buffer{}
+
+	encoder := json.NewEncoder(&answersBody)
+	for _, answer := range answers {
+		if err := encoder.Encode(answer); err != nil {
+			return err
+		}
+	}
+
+	_, err := c.s3Client.PutObject(&s3.PutObjectInput{
+		Bucket: &c.bucketName,
+		Key:    aws.String(answersFilename),
+		Body:   bytes.NewReader(answersBody.Bytes()),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // StoreQuestion implements the db.Databaser.StoreQuestion

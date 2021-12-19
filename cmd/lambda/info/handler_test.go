@@ -41,6 +41,14 @@ func (m *mockDBClient) StoreText(ctx context.Context, id, text string) error {
 	return nil
 }
 
+func (m *mockDBClient) GetAnswers(ctx context.Context) ([]db.Answer, error) {
+	return nil, nil
+}
+
+func (m *mockDBClient) StoreAnswers(ctx context.Context, answers []db.Answer) error {
+	return nil
+}
+
 func (m *mockDBClient) StoreQuestion(ctx context.Context, question string) error {
 	return m.mockStoreQuestionsError
 }
