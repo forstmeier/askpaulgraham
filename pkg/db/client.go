@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/google/uuid"
 )
 
 const answersFilename = "answers.jsonl"
@@ -205,6 +206,9 @@ func (c *Client) StoreQuestion(ctx context.Context, question string) error {
 	now := time.Now().String()
 	_, err := c.dynamoDBClient.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
+			"id": {
+				S: aws.String(uuid.NewString()),
+			},
 			"question": {
 				S: &question,
 			},

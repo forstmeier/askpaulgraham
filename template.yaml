@@ -56,6 +56,30 @@ Resources:
             Schedule: cron(0 12 * * ? *)
       Handler: data
       MemorySize: 1024
+      Policies:
+        - Version: '2012-10-17' 
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource:
+                Fn::Sub: arn:aws:s3:::${DataBucket}/*
+            - Effect: Allow
+              Action:
+                - dynamodb:BatchWriteItem
+                - dynamodb:Scan
+              Resource:
+                Fn::GetAtt:
+                  - summariesTable
+                  - Arn
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                Fn::GetAtt:
+                  - questionsTable
+                  - Arn
       Runtime: go1.x
       Timeout: 30
   infoFunction:
@@ -88,6 +112,30 @@ Resources:
             Path: /summaries
       Handler: info
       MemorySize: 512
+      Policies:
+        - Version: '2012-10-17' 
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource:
+                Fn::Sub: arn:aws:s3:::${DataBucket}/*
+            - Effect: Allow
+              Action:
+                - dynamodb:BatchWriteItem
+                - dynamodb:Scan
+              Resource:
+                Fn::GetAtt:
+                  - summariesTable
+                  - Arn
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource:
+                Fn::GetAtt:
+                  - questionsTable
+                  - Arn
       Runtime: go1.x
       Timeout: 15
   questionsTable:
@@ -112,3 +160,11 @@ Outputs:
   OpenAIAPIKey:
     Value:
       Ref: OpenAIAPIKey
+  QuestionAPIEndpoint:
+    Description: Endpoint for processing user questions
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/question
+  SummariesAPIEndpoint:
+    Description: Endpoint for serving essay summaries
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/summaries

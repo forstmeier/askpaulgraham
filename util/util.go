@@ -92,7 +92,7 @@ func SendResponse(statusCode int, payload interface{}, message string) (events.A
 		}, err
 	}
 
-	logMessage("RESPONSE_BODY", string(bodyBytes))
+	logMessage("SEND_RESPONSE_BODY", string(bodyBytes))
 	return events.APIGatewayProxyResponse{
 		StatusCode:      statusCode,
 		Body:            string(bodyBytes),

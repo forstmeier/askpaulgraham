@@ -198,11 +198,11 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 }
 
 type getAnswerReqJSON struct {
-	Model           string   `json:"model"`
-	Question        string   `json:"question"`
-	Examples        []string `json:"examples"`
-	ExamplesContext string   `json:"examples_context"`
-	File            string   `json:"file"`
+	Model           string     `json:"model"`
+	Question        string     `json:"question"`
+	Examples        [][]string `json:"examples"`
+	ExamplesContext string     `json:"examples_context"`
+	File            string     `json:"file"`
 }
 
 type getAnswersRespJSON struct {
@@ -234,11 +234,13 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 	data := getAnswerReqJSON{
 		Model:    answersModel,
 		Question: question,
-		Examples: []string{
-			"Build something that solves a problem you have",
-			"The way to make your startup grow, is to make something users really love",
+		Examples: [][]string{
+			{
+				"What is the best way to start a company?",
+				"How do I get users for my startup product?",
+			},
 		},
-		ExamplesContext: "What is the best way to start a company?",
+		ExamplesContext: "Build something that solves a problem you have",
 		File:            fileID,
 	}
 

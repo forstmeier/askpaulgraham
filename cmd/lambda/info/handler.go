@@ -44,7 +44,7 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 			return util.SendResponse(
 				http.StatusOK,
 				summaries,
-				"RESPONSE_BODY",
+				"SUCCESSFUL_GET_RESPONSE",
 			)
 
 		case "POST":
@@ -77,7 +77,7 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 			return util.SendResponse(
 				http.StatusOK,
 				answers[0],
-				"RESPONSE_BODY",
+				"SUCCESSFUL_POST_RESPONSE",
 			)
 
 		default:

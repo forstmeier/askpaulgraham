@@ -34,7 +34,12 @@ func (h *help) sendRequest(method, url string, body io.Reader, payload interface
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("nlp: non-200 status code '%d'", resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		return fmt.Errorf("nlp: %s", body)
 	}
 
 	decoder := json.NewDecoder(resp.Body)
