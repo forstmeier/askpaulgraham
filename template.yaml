@@ -76,6 +76,7 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:PutItem
+                - dynamodb:UpdateItem
               Resource:
                 Fn::GetAtt:
                   - questionsTable
@@ -132,6 +133,7 @@ Resources:
             - Effect: Allow
               Action:
                 - dynamodb:PutItem
+                - dynamodb:UpdateItem
               Resource:
                 Fn::GetAtt:
                   - questionsTable

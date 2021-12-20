@@ -11,7 +11,8 @@ type Databaser interface {
 	StoreText(ctx context.Context, id, text string) error
 	GetAnswers(ctx context.Context) ([]Answer, error)
 	StoreAnswers(ctx context.Context, answers []Answer) error
-	StoreQuestion(ctx context.Context, question string) error
+	StoreQuestion(ctx context.Context, id, question string) error
+	StoreAnswer(ctx context.Context, id, answer string) error
 }
 
 // Summary represents a row in the summaries table.

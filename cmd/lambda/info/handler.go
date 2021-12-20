@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/google/uuid"
 
 	"github.com/forstmeier/askpaulgraham/pkg/db"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
@@ -57,7 +58,9 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 				)
 			}
 
-			if err := dbClient.StoreQuestion(ctx, payload.Question); err != nil {
+			id := uuid.NewString()
+
+			if err := dbClient.StoreQuestion(ctx, id, payload.Question); err != nil {
 				return util.SendResponse(
 					http.StatusInternalServerError,
 					err,
@@ -71,6 +74,14 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 					http.StatusInternalServerError,
 					err,
 					"GET_ANSWERS_ERROR",
+				)
+			}
+
+			if err := dbClient.StoreAnswer(ctx, id, answers[0]); err != nil {
+				return util.SendResponse(
+					http.StatusInternalServerError,
+					err,
+					"STORE_ANSWER_ERROR",
 				)
 			}
 

@@ -63,7 +63,11 @@ func (m *mockDBClient) StoreAnswers(ctx context.Context, answers []db.Answer) er
 	return nil
 }
 
-func (m *mockDBClient) StoreQuestion(ctx context.Context, question string) error {
+func (m *mockDBClient) StoreQuestion(ctx context.Context, id, question string) error {
+	return nil
+}
+
+func (m *mockDBClient) StoreAnswer(ctx context.Context, id, answer string) error {
 	return nil
 }
 

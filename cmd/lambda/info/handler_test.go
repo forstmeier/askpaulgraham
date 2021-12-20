@@ -20,9 +20,10 @@ func TestMain(m *testing.M) {
 }
 
 type mockDBClient struct {
-	mockGetSummariesOutput  []db.Summary
-	mockGetSummariesError   error
-	mockStoreQuestionsError error
+	mockGetSummariesOutput []db.Summary
+	mockGetSummariesError  error
+	mockStoreQuestionError error
+	mockStoreAnwerError    error
 }
 
 func (m *mockDBClient) GetIDs(ctx context.Context) ([]string, error) {
@@ -49,8 +50,12 @@ func (m *mockDBClient) StoreAnswers(ctx context.Context, answers []db.Answer) er
 	return nil
 }
 
-func (m *mockDBClient) StoreQuestion(ctx context.Context, question string) error {
-	return m.mockStoreQuestionsError
+func (m *mockDBClient) StoreQuestion(ctx context.Context, id, question string) error {
+	return m.mockStoreQuestionError
+}
+
+func (m *mockDBClient) StoreAnswer(ctx context.Context, id, answer string) error {
+	return m.mockStoreAnwerError
 }
 
 type mockNLPClient struct {
@@ -72,15 +77,16 @@ func (m *mockNLPClient) GetAnswers(ctx context.Context, question string) ([]stri
 
 func Test_handler(t *testing.T) {
 	tests := []struct {
-		description             string
-		request                 events.APIGatewayProxyRequest
-		mockGetSummariesOutput  []db.Summary
-		mockGetSummariesError   error
-		mockStoreQuestionsError error
-		mockGetAnswersOutput    []string
-		mockGetAnswersError     error
-		statusCode              int
-		body                    string
+		description            string
+		request                events.APIGatewayProxyRequest
+		mockGetSummariesOutput []db.Summary
+		mockGetSummariesError  error
+		mockStoreQuestionError error
+		mockGetAnswersOutput   []string
+		mockGetAnswersError    error
+		mockStoreAnwerError    error
+		statusCode             int
+		body                   string
 	}{
 		{
 			description: "unsupported http method",
@@ -123,9 +129,9 @@ func Test_handler(t *testing.T) {
 				HTTPMethod: http.MethodPost,
 				Body:       `{"question":"mock_question"}`,
 			},
-			mockStoreQuestionsError: errors.New("mock store questions error"),
-			statusCode:              http.StatusInternalServerError,
-			body:                    `{"error":"mock store questions error"}`,
+			mockStoreQuestionError: errors.New("mock store question error"),
+			statusCode:             http.StatusInternalServerError,
+			body:                   `{"error":"mock store question error"}`,
 		},
 		{
 			description: "error getting answers",
@@ -133,11 +139,24 @@ func Test_handler(t *testing.T) {
 				HTTPMethod: http.MethodPost,
 				Body:       `{"question":"mock_question"}`,
 			},
-			mockStoreQuestionsError: nil,
-			mockGetAnswersOutput:    nil,
-			mockGetAnswersError:     errors.New("mock get answers error"),
-			statusCode:              http.StatusInternalServerError,
-			body:                    `{"error":"mock get answers error"}`,
+			mockStoreQuestionError: nil,
+			mockGetAnswersOutput:   nil,
+			mockGetAnswersError:    errors.New("mock get answers error"),
+			statusCode:             http.StatusInternalServerError,
+			body:                   `{"error":"mock get answers error"}`,
+		},
+		{
+			description: "error storing answer",
+			request: events.APIGatewayProxyRequest{
+				HTTPMethod: http.MethodPost,
+				Body:       `{"question":"mock_question"}`,
+			},
+			mockStoreQuestionError: nil,
+			mockGetAnswersOutput:   []string{"mock_answer"},
+			mockGetAnswersError:    nil,
+			mockStoreAnwerError:    errors.New("mock store answer error"),
+			statusCode:             http.StatusInternalServerError,
+			body:                   `{"error":"mock store answer error"}`,
 		},
 		{
 			description: "successful post invocation",
@@ -145,20 +164,21 @@ func Test_handler(t *testing.T) {
 				HTTPMethod: http.MethodPost,
 				Body:       `{"question":"mock_question"}`,
 			},
-			mockStoreQuestionsError: nil,
-			mockGetAnswersOutput:    []string{"mock_answer"},
-			mockGetAnswersError:     nil,
-			statusCode:              http.StatusOK,
-			body:                    `{"message":"success","answer":"mock_answer"}`,
+			mockStoreQuestionError: nil,
+			mockGetAnswersOutput:   []string{"mock_answer"},
+			mockGetAnswersError:    nil,
+			statusCode:             http.StatusOK,
+			body:                   `{"message":"success","answer":"mock_answer"}`,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.description, func(t *testing.T) {
 			d := &mockDBClient{
-				mockGetSummariesOutput:  test.mockGetSummariesOutput,
-				mockGetSummariesError:   test.mockGetSummariesError,
-				mockStoreQuestionsError: test.mockStoreQuestionsError,
+				mockGetSummariesOutput: test.mockGetSummariesOutput,
+				mockGetSummariesError:  test.mockGetSummariesError,
+				mockStoreQuestionError: test.mockStoreQuestionError,
+				mockStoreAnwerError:    test.mockStoreAnwerError,
 			}
 
 			n := &mockNLPClient{

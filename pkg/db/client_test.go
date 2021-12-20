@@ -18,6 +18,7 @@ type mockDynamoDBClient struct {
 	mockScanError           error
 	mockBatchWriteItemError error
 	mockPutItemError        error
+	mockUpdateItemError     error
 }
 
 func (m *mockDynamoDBClient) Scan(input *dynamodb.ScanInput) (*dynamodb.ScanOutput, error) {
@@ -30,6 +31,10 @@ func (m *mockDynamoDBClient) BatchWriteItem(input *dynamodb.BatchWriteItemInput)
 
 func (m *mockDynamoDBClient) PutItem(input *dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error) {
 	return nil, m.mockPutItemError
+}
+
+func (m *mockDynamoDBClient) UpdateItem(input *dynamodb.UpdateItemInput) (*dynamodb.UpdateItemOutput, error) {
+	return nil, m.mockUpdateItemError
 }
 
 type mockS3Client struct {
@@ -387,7 +392,44 @@ func TestStoreQuestion(t *testing.T) {
 				},
 			}
 
-			err := c.StoreQuestion(context.Background(), "question")
+			err := c.StoreQuestion(context.Background(), "id", "question")
+
+			if err != test.error {
+				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
+			}
+		})
+	}
+}
+
+func TestStoreAnswer(t *testing.T) {
+	mockUpdateItemErr := errors.New("mock update item error")
+
+	tests := []struct {
+		description         string
+		mockUpdateItemError error
+		error               error
+	}{
+		{
+			description:         "error updating item",
+			mockUpdateItemError: mockUpdateItemErr,
+			error:               mockUpdateItemErr,
+		},
+		{
+			description:         "successful invocation",
+			mockUpdateItemError: nil,
+			error:               nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.description, func(t *testing.T) {
+			c := &Client{
+				dynamoDBClient: &mockDynamoDBClient{
+					mockUpdateItemError: test.mockUpdateItemError,
+				},
+			}
+
+			err := c.StoreAnswer(context.Background(), "id", "answer")
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)

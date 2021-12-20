@@ -12,7 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/google/uuid"
 )
 
 const answersFilename = "answers.jsonl"
@@ -49,6 +48,7 @@ type dynamoDBClient interface {
 	Scan(input *dynamodb.ScanInput) (*dynamodb.ScanOutput, error)
 	BatchWriteItem(input *dynamodb.BatchWriteItemInput) (*dynamodb.BatchWriteItemOutput, error)
 	PutItem(input *dynamodb.PutItemInput) (*dynamodb.PutItemOutput, error)
+	UpdateItem(input *dynamodb.UpdateItemInput) (*dynamodb.UpdateItemOutput, error)
 }
 
 // GetIDs implements the db.Databaser.GetIDs method
@@ -202,12 +202,12 @@ func (c *Client) StoreAnswers(ctx context.Context, answers []Answer) error {
 
 // StoreQuestion implements the db.Databaser.StoreQuestion
 // method using AWS DynamoDB.
-func (c *Client) StoreQuestion(ctx context.Context, question string) error {
+func (c *Client) StoreQuestion(ctx context.Context, id, question string) error {
 	now := time.Now().String()
 	_, err := c.dynamoDBClient.PutItem(&dynamodb.PutItemInput{
 		Item: map[string]*dynamodb.AttributeValue{
 			"id": {
-				S: aws.String(uuid.NewString()),
+				S: &id,
 			},
 			"question": {
 				S: &question,
@@ -217,6 +217,31 @@ func (c *Client) StoreQuestion(ctx context.Context, question string) error {
 			},
 		},
 		TableName: &c.questionsTableName,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// StoreAnswer implements the db.Databaser.StoreAnswer
+// method using AWS DynamoDB.
+func (c *Client) StoreAnswer(ctx context.Context, id, answer string) error {
+	_, err := c.dynamoDBClient.UpdateItem(&dynamodb.UpdateItemInput{
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":answer": {
+				S: aws.String(answer),
+			},
+		},
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {
+				S: &id,
+			},
+		},
+		ReturnValues:     aws.String("UPDATED_NEW"),
+		UpdateExpression: aws.String("set answer = :answer"),
+		TableName:        &c.questionsTableName,
 	})
 	if err != nil {
 		return err
