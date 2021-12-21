@@ -66,7 +66,8 @@ type getSummaryRespChoiceJSON struct {
 	Text string `json:"text"`
 }
 
-// GetSummary implements the nlp.NLPer.GetSummary method.
+// GetSummary implements the nlp.NLPer.GetSummary method
+// and generates a summary of the provided text with OpenAI.
 func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	// check to work within OpenAI token limits
 	wordCount := strings.Split(text, " ")
@@ -117,7 +118,9 @@ type documentJSON struct {
 	Metadata string `json:"metadata"`
 }
 
-// SetDocuments implements the nlp.NLPer.SetDocuments method.
+// SetDocuments implements the nlp.NLPer.SetDocuments method
+// and stores the provided slice of structs representing the
+// documents.jsonl file in OpenAI.
 func (c *Client) SetDocuments(ctx context.Context, documents []dct.Document) error {
 	documentsBody := bytes.Buffer{}
 	encoder := json.NewEncoder(&documentsBody)
@@ -181,7 +184,8 @@ type getAnswersRespJSON struct {
 	Answers []string `json:"answers"`
 }
 
-// GetAnswers implements the nlp.NLPer.GetAnswer method.
+// GetAnswers implements the nlp.NLPer.GetAnswer method
+// and generates answers to the provided question using OpenAI.
 func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, error) {
 	getFilesRespBody := getFilesRespJSON{}
 	if err := c.helper.sendRequest(

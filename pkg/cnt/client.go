@@ -18,7 +18,9 @@ func New() *Client {
 	return &Client{}
 }
 
-// GetItems implements the cnt.Contenter.GetItems method.
+// GetItems implements the cnt.Contenter.GetItems method
+// returning a slice of structs representing the items in
+// the RSS feed.
 func (c *Client) GetItems(ctx context.Context, address string) ([]ItemXML, error) {
 	response, err := http.Get(address)
 	if err != nil {
@@ -35,7 +37,8 @@ func (c *Client) GetItems(ctx context.Context, address string) ([]ItemXML, error
 	return rss.Channel.Items, nil
 }
 
-// GetText implements the cnt.Contenter.GetText method.
+// GetText implements the cnt.Contenter.GetText method
+// returning the text of a target RSS item address.
 func (c *Client) GetText(ctx context.Context, address string) (*string, error) {
 	response, err := http.Get(address)
 	if err != nil {
