@@ -1,18 +1,18 @@
 package nlp
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"reflect"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 )
 
 func TestNew(t *testing.T) {
@@ -118,47 +118,23 @@ func TestGetSummary(t *testing.T) {
 	}
 }
 
-func TestSetAnswer(t *testing.T) {
-	mockGetObjectErr := errors.New("mock get object error")
-	setAnswersErr := errors.New("mock set answers error")
+func TestSetDocuments(t *testing.T) {
+	setDocumentsErr := errors.New("mock set answers error")
 
 	tests := []struct {
-		description         string
-		responses           []response
-		mockGetObjectOutput *s3.GetObjectOutput
-		mockGetObjectError  error
-		error               error
+		description string
+		responses   []response
+		error       error
 	}{
 		{
-			description: "error getting object",
-			responses: []response{
-				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, documentsFilename)),
-					error: nil,
-				},
-				{
-					body:  nil,
-					error: nil,
-				},
-			},
-			mockGetObjectOutput: nil,
-			mockGetObjectError:  mockGetObjectErr,
-			error:               mockGetObjectErr,
-		},
-		{
-			description: "error setting answers",
+			description: "error setting documents",
 			responses: []response{
 				{
 					body:  nil,
-					error: setAnswersErr,
+					error: setDocumentsErr,
 				},
 			},
-			mockGetObjectOutput: &s3.GetObjectOutput{
-				Body: ioutil.NopCloser(bytes.NewReader([]byte(`{"text": "first text", "metadata": "first_id"}
-		{"text": "second text", "metadata": "second_id"}`))),
-			},
-			mockGetObjectError: nil,
-			error:              setAnswersErr,
+			error: setDocumentsErr,
 		},
 		{
 			description: "successful invocation",
@@ -168,12 +144,7 @@ func TestSetAnswer(t *testing.T) {
 					error: nil,
 				},
 			},
-			mockGetObjectOutput: &s3.GetObjectOutput{
-				Body: ioutil.NopCloser(bytes.NewReader([]byte(`{"text": "first text", "metadata": "first_id"}
-		{"text": "second text", "metadata": "second_id"}`))),
-			},
-			mockGetObjectError: nil,
-			error:              nil,
+			error: nil,
 		},
 	}
 
@@ -185,13 +156,14 @@ func TestSetAnswer(t *testing.T) {
 					responses: test.responses,
 				},
 				bucketName: "bucket_name",
-				s3Client: &mockS3Client{
-					mockGetObjectOutput: test.mockGetObjectOutput,
-					mockGetObjectError:  test.mockGetObjectError,
-				},
 			}
 
-			err := c.SetAnswer(context.Background(), "mock_id", "mock answer")
+			err := c.SetDocuments(context.Background(), []dct.Document{
+				{
+					Text:     "mock answer",
+					Metadata: "mock_id",
+				},
+			})
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
 			}

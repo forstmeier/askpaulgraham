@@ -19,6 +19,7 @@ import (
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
 	"github.com/forstmeier/askpaulgraham/pkg/db"
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
 	"github.com/forstmeier/askpaulgraham/util"
 )
@@ -93,7 +94,7 @@ func main() {
 				log.Fatalf("error getting text: %v", err)
 			}
 
-			bodyBytes, err := json.Marshal(db.Document{
+			bodyBytes, err := json.Marshal(dct.Document{
 				Metadata: *postID,
 				Text:     *text,
 			})
@@ -124,7 +125,7 @@ func main() {
 				}
 
 				id := util.GetIDFromURL(item.Link)
-				if err := encoder.Encode(db.Document{
+				if err := encoder.Encode(dct.Document{
 					Text:     *text,
 					Metadata: id,
 				}); err != nil {
@@ -145,7 +146,7 @@ func main() {
 			filename = documentsFilename
 		}
 
-		documents := []db.Document{}
+		documents := []dct.Document{}
 
 		bodyBytes, err := os.ReadFile(filename)
 		if err != nil {
@@ -158,7 +159,7 @@ func main() {
 				log.Fatalf("error getting stored documents file: %v", err)
 			}
 
-			document := db.Document{}
+			document := dct.Document{}
 			if err := json.Unmarshal(bodyBytes, &document); err != nil {
 				log.Fatalf("error unmarshalling local document file: %v", err)
 			}
@@ -174,14 +175,14 @@ func main() {
 				log.Fatalf("error storing markdown text file: %v", err)
 			}
 
-			if err := nlpClient.SetAnswer(ctx, document.Metadata, document.Text); err != nil {
-				log.Fatalf("error setting answer: %v", err)
+			if err := nlpClient.SetDocuments(ctx, documents); err != nil {
+				log.Fatalf("error setting documents: %v", err)
 			}
 
 		} else if *size == bulkSize {
 			decoder := json.NewDecoder(bytes.NewReader(bodyBytes))
 			for decoder.More() {
-				document := db.Document{}
+				document := dct.Document{}
 				if err := decoder.Decode(&document); err == io.EOF {
 					break
 				} else if err != nil {
@@ -190,29 +191,10 @@ func main() {
 
 				documents = append(documents, document)
 			}
+		}
 
-			items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")
-			if err != nil {
-				log.Fatalf("error getting items: %v", err)
-			}
-
-			itemIDsMap := map[string]struct{}{}
-			for _, item := range items {
-				if strings.Contains(item.Link, "1638975042") {
-					continue
-				}
-
-				id := util.GetIDFromURL(item.Link)
-				itemIDsMap[id] = struct{}{}
-			}
-
-			for _, document := range documents {
-				if _, ok := itemIDsMap[document.Metadata]; !ok {
-					if err := nlpClient.SetAnswer(ctx, document.Metadata, document.Text); err != nil {
-						log.Fatalf("error setting answer: %v", err)
-					}
-				}
-			}
+		if err := nlpClient.SetDocuments(ctx, documents); err != nil {
+			log.Fatalf("error setting documents: %v", err)
 		}
 
 		if err := dbClient.StoreDocuments(ctx, documents); err != nil {

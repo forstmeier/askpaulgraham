@@ -10,9 +10,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 )
 
 const documentsFilename = "documents.jsonl"
@@ -116,36 +117,8 @@ type documentJSON struct {
 	Metadata string `json:"metadata"`
 }
 
-// SetAnswer implements the nlp.NLPer.SetAnswer method.
-func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
-	getDocumentsResp, err := c.s3Client.GetObject(&s3.GetObjectInput{
-		Bucket: &c.bucketName,
-		Key:    aws.String(documentsFilename),
-	})
-	if err != nil {
-		return err
-	}
-
-	documents := []documentJSON{
-		{
-			Text:     answer,
-			Metadata: id,
-		},
-	}
-	decoder := json.NewDecoder(getDocumentsResp.Body)
-	for decoder.More() {
-		var document documentJSON
-		if err := decoder.Decode(&document); err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-
-		if document.Metadata != id {
-			documents = append(documents, document)
-		}
-	}
-
+// SetDocuments implements the nlp.NLPer.SetDocuments method.
+func (c *Client) SetDocuments(ctx context.Context, documents []dct.Document) error {
 	documentsBody := bytes.Buffer{}
 	encoder := json.NewEncoder(&documentsBody)
 	for _, document := range documents {
@@ -159,7 +132,7 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 
 	var fileWriter, purposeWriter io.Writer
 
-	purposeWriter, err = multipartWriter.CreateFormField("purpose")
+	purposeWriter, err := multipartWriter.CreateFormField("purpose")
 	if err != nil {
 		return err
 	}

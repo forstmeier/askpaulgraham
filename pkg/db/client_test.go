@@ -11,6 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 )
 
 type mockDynamoDBClient struct {
@@ -274,7 +276,7 @@ func TestGetDocuments(t *testing.T) {
 		description         string
 		mockGetObjectOutput *s3.GetObjectOutput
 		mockGetObjectError  error
-		documents           []Document
+		documents           []dct.Document
 		error               error
 	}{
 		{
@@ -290,7 +292,7 @@ func TestGetDocuments(t *testing.T) {
 				Body: aws.ReadSeekCloser(strings.NewReader(`{"text": "example text", "metadata": "example metadata"}`)),
 			},
 			mockGetObjectError: nil,
-			documents: []Document{
+			documents: []dct.Document{
 				{
 					Text:     "example text",
 					Metadata: "example metadata",
@@ -350,7 +352,7 @@ func TestStoreDocuments(t *testing.T) {
 				},
 			}
 
-			err := c.StoreDocuments(context.Background(), []Document{
+			err := c.StoreDocuments(context.Background(), []dct.Document{
 				{
 					Text:     "example text",
 					Metadata: "example metadata",

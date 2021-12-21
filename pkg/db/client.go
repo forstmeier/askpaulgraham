@@ -12,6 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/s3"
+
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 )
 
 const documentsFilename = "documents.jsonl"
@@ -151,7 +153,7 @@ func (c *Client) StoreText(ctx context.Context, id, text string) error {
 
 // GetDocuments implements the db.Databaser.GetDocuments
 // method using AWS S3.
-func (c *Client) GetDocuments(ctx context.Context) ([]Document, error) {
+func (c *Client) GetDocuments(ctx context.Context) ([]dct.Document, error) {
 	response, err := c.s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: &c.bucketName,
 		Key:    aws.String(documentsFilename),
@@ -160,10 +162,10 @@ func (c *Client) GetDocuments(ctx context.Context) ([]Document, error) {
 		return nil, err
 	}
 
-	documents := []Document{}
+	documents := []dct.Document{}
 	decoder := json.NewDecoder(response.Body)
 	for decoder.More() {
-		var document Document
+		var document dct.Document
 		if err := decoder.Decode(&document); err == io.EOF {
 			break
 		} else if err != nil {
@@ -178,7 +180,7 @@ func (c *Client) GetDocuments(ctx context.Context) ([]Document, error) {
 
 // StoreDocuments implements the db.Databaser.StoreDocuments
 // method using AWS S3.
-func (c *Client) StoreDocuments(ctx context.Context, documents []Document) error {
+func (c *Client) StoreDocuments(ctx context.Context, documents []dct.Document) error {
 	documentsBody := bytes.Buffer{}
 
 	encoder := json.NewEncoder(&documentsBody)

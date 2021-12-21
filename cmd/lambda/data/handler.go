@@ -6,6 +6,7 @@ import (
 
 	"github.com/forstmeier/askpaulgraham/pkg/cnt"
 	"github.com/forstmeier/askpaulgraham/pkg/db"
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
 	"github.com/forstmeier/askpaulgraham/util"
 )
@@ -65,11 +66,6 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					return err
 				}
 
-				if err := nlpClient.SetAnswer(ctx, id, *text); err != nil {
-					util.Log("SET_ANSWER_ERROR", err)
-					return err
-				}
-
 				documents, err := dbClient.GetDocuments(ctx)
 				if err != nil {
 					util.Log("GET_DOCUMENTS_ERROR", err)
@@ -80,11 +76,16 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					if document.Metadata == id {
 						break
 					} else if len(documents) == i+1 {
-						documents = append(documents, db.Document{
-							Text:     *text,
+						documents = append(documents, dct.Document{
 							Metadata: id,
+							Text:     *text,
 						})
 					}
+				}
+
+				if err := nlpClient.SetDocuments(ctx, documents); err != nil {
+					util.Log("SET_DOCUMENTS_ERROR", err)
+					return err
 				}
 
 				if err := dbClient.StoreDocuments(ctx, documents); err != nil {

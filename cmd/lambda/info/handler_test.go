@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 
 	"github.com/forstmeier/askpaulgraham/pkg/db"
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
 )
 
 func TestMain(m *testing.M) {
@@ -42,11 +43,11 @@ func (m *mockDBClient) StoreText(ctx context.Context, id, text string) error {
 	return nil
 }
 
-func (m *mockDBClient) GetDocuments(ctx context.Context) ([]db.Document, error) {
+func (m *mockDBClient) GetDocuments(ctx context.Context) ([]dct.Document, error) {
 	return nil, nil
 }
 
-func (m *mockDBClient) StoreDocuments(ctx context.Context, documents []db.Document) error {
+func (m *mockDBClient) StoreDocuments(ctx context.Context, documents []dct.Document) error {
 	return nil
 }
 
@@ -67,7 +68,7 @@ func (m *mockNLPClient) GetSummary(ctx context.Context, text string) (*string, e
 	return nil, nil
 }
 
-func (m *mockNLPClient) SetAnswer(ctx context.Context, id, answer string) error {
+func (m *mockNLPClient) SetDocuments(ctx context.Context, document []dct.Document) error {
 	return nil
 }
 

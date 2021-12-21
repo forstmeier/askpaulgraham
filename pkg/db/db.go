@@ -1,6 +1,10 @@
 package db
 
-import "context"
+import (
+	"context"
+
+	"github.com/forstmeier/askpaulgraham/pkg/dct"
+)
 
 // Databaser defines methods for interacting with the
 // storage layer of the application.
@@ -9,8 +13,8 @@ type Databaser interface {
 	GetSummaries(ctx context.Context) ([]Summary, error)
 	StoreSummaries(ctx context.Context, summaries []Summary) error
 	StoreText(ctx context.Context, id, text string) error
-	GetDocuments(ctx context.Context) ([]Document, error)
-	StoreDocuments(ctx context.Context, answers []Document) error
+	GetDocuments(ctx context.Context) ([]dct.Document, error)
+	StoreDocuments(ctx context.Context, answers []dct.Document) error
 	StoreQuestion(ctx context.Context, id, question string) error
 	StoreAnswer(ctx context.Context, id, answer string) error
 }
@@ -21,10 +25,4 @@ type Summary struct {
 	URL     string `json:"url"`
 	Title   string `json:"title"`
 	Summary string `json:"summary"`
-}
-
-// Document represents a row in the documents.jsonl file.
-type Document struct {
-	Text     string `json:"text"`
-	Metadata string `json:"metadata"`
 }
