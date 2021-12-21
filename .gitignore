@@ -17,5 +17,5 @@ summaries.json
 summary.json
 
 # exported data files
-summaries_export.json
-questions_export.json
+summaries_table.json
+questions_table.json

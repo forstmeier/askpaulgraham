@@ -19,8 +19,8 @@ summaries_table_name=$( jq -r 'map(select(.OutputKey == "SummariesTableName")) |
 data_bucket_name=$( jq -r 'map(select(.OutputKey == "DataBucketName")) | .[0].OutputValue' <<< "${stack_outputs}" )
 open_ai_api_key=$( jq -r 'map(select(.OutputKey == "OpenAIAPIKey")) | .[0].OutputValue' <<< "${stack_outputs}" )
 
-python3 ./bin/batch_upload.py questions_export.json $questions_table_name
-python3 ./bin/batch_upload.py summaries_export.json $summaries_table_name
+python3 ./bin/batch_upload.py questions_table.json $questions_table_name
+python3 ./bin/batch_upload.py summaries_table.json $summaries_table_name
 
 config_json=$( jq -n \
 	--arg questions_table_name "$questions_table_name" \
