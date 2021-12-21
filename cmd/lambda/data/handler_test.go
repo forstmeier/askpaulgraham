@@ -55,11 +55,11 @@ func (m *mockDBClient) StoreText(ctx context.Context, id, text string) error {
 	return m.mockStoreTextError
 }
 
-func (m *mockDBClient) GetAnswers(ctx context.Context) ([]db.Answer, error) {
+func (m *mockDBClient) GetDocuments(ctx context.Context) ([]db.Document, error) {
 	return nil, nil
 }
 
-func (m *mockDBClient) StoreAnswers(ctx context.Context, answers []db.Answer) error {
+func (m *mockDBClient) StoreDocuments(ctx context.Context, documents []db.Document) error {
 	return nil
 }
 

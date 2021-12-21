@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-const answersFilename = "answers.jsonl"
+const documentsFilename = "documents.jsonl"
 
 var _ Databaser = &Client{}
 
@@ -149,49 +149,49 @@ func (c *Client) StoreText(ctx context.Context, id, text string) error {
 	return err
 }
 
-// GetAnswers implements the db.Databaser.GetAnswers
+// GetDocuments implements the db.Databaser.GetDocuments
 // method using AWS S3.
-func (c *Client) GetAnswers(ctx context.Context) ([]Answer, error) {
+func (c *Client) GetDocuments(ctx context.Context) ([]Document, error) {
 	response, err := c.s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: &c.bucketName,
-		Key:    aws.String(answersFilename),
+		Key:    aws.String(documentsFilename),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	answers := []Answer{}
+	documents := []Document{}
 	decoder := json.NewDecoder(response.Body)
 	for decoder.More() {
-		var answer Answer
-		if err := decoder.Decode(&answer); err == io.EOF {
+		var document Document
+		if err := decoder.Decode(&document); err == io.EOF {
 			break
 		} else if err != nil {
 			return nil, err
 		}
 
-		answers = append(answers, answer)
+		documents = append(documents, document)
 	}
 
-	return answers, nil
+	return documents, nil
 }
 
-// StoreAnswers implements the db.Databaser.StoreAnswers
+// StoreDocuments implements the db.Databaser.StoreDocuments
 // method using AWS S3.
-func (c *Client) StoreAnswers(ctx context.Context, answers []Answer) error {
-	answersBody := bytes.Buffer{}
+func (c *Client) StoreDocuments(ctx context.Context, documents []Document) error {
+	documentsBody := bytes.Buffer{}
 
-	encoder := json.NewEncoder(&answersBody)
-	for _, answer := range answers {
-		if err := encoder.Encode(answer); err != nil {
+	encoder := json.NewEncoder(&documentsBody)
+	for _, document := range documents {
+		if err := encoder.Encode(document); err != nil {
 			return err
 		}
 	}
 
 	_, err := c.s3Client.PutObject(&s3.PutObjectInput{
 		Bucket: &c.bucketName,
-		Key:    aws.String(answersFilename),
-		Body:   bytes.NewReader(answersBody.Bytes()),
+		Key:    aws.String(documentsFilename),
+		Body:   bytes.NewReader(documentsBody.Bytes()),
 	})
 	if err != nil {
 		return err

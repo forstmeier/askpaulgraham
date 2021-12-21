@@ -70,25 +70,25 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					return err
 				}
 
-				answers, err := dbClient.GetAnswers(ctx)
+				documents, err := dbClient.GetDocuments(ctx)
 				if err != nil {
-					util.Log("GET_ANSWERS_ERROR", err)
+					util.Log("GET_DOCUMENTS_ERROR", err)
 					return err
 				}
 
-				for i, answer := range answers {
-					if answer.Metadata == id {
+				for i, document := range documents {
+					if document.Metadata == id {
 						break
-					} else if len(answers) == i+1 {
-						answers = append(answers, db.Answer{
+					} else if len(documents) == i+1 {
+						documents = append(documents, db.Document{
 							Text:     *text,
 							Metadata: id,
 						})
 					}
 				}
 
-				if err := dbClient.StoreAnswers(ctx, answers); err != nil {
-					util.Log("STORE_ANSWERS_ERROR", err)
+				if err := dbClient.StoreDocuments(ctx, documents); err != nil {
+					util.Log("STORE_DOCUMENTS_ERROR", err)
 					return err
 				}
 			}

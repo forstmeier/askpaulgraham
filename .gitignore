@@ -8,9 +8,9 @@ samconfig.toml
 # SAM-generated resources
 .aws-sam/
 
-# stored answers files
-answers.jsonl
-answer.json
+# stored documents files
+documents.jsonl
+document.json
 
 # stored summaries files
 summaries.json

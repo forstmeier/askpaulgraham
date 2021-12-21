@@ -267,21 +267,21 @@ func TestStoreText(t *testing.T) {
 	}
 }
 
-func TestGetAnswers(t *testing.T) {
+func TestGetDocuments(t *testing.T) {
 	mockGetObjectErr := errors.New("mock get object error")
 
 	tests := []struct {
 		description         string
 		mockGetObjectOutput *s3.GetObjectOutput
 		mockGetObjectError  error
-		answers             []Answer
+		documents           []Document
 		error               error
 	}{
 		{
 			description:         "error getting object",
 			mockGetObjectOutput: nil,
 			mockGetObjectError:  mockGetObjectErr,
-			answers:             nil,
+			documents:           nil,
 			error:               mockGetObjectErr,
 		},
 		{
@@ -290,7 +290,7 @@ func TestGetAnswers(t *testing.T) {
 				Body: aws.ReadSeekCloser(strings.NewReader(`{"text": "example text", "metadata": "example metadata"}`)),
 			},
 			mockGetObjectError: nil,
-			answers: []Answer{
+			documents: []Document{
 				{
 					Text:     "example text",
 					Metadata: "example metadata",
@@ -309,20 +309,20 @@ func TestGetAnswers(t *testing.T) {
 				},
 			}
 
-			answers, err := c.GetAnswers(context.Background())
+			documents, err := c.GetDocuments(context.Background())
 
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
 			}
 
-			if !reflect.DeepEqual(answers, test.answers) {
-				t.Errorf("incorrect answers, received: %v, expected: %v", answers, test.answers)
+			if !reflect.DeepEqual(documents, test.documents) {
+				t.Errorf("incorrect documents, received: %v, expected: %v", documents, test.documents)
 			}
 		})
 	}
 }
 
-func TestStoreAnswers(t *testing.T) {
+func TestStoreDocuments(t *testing.T) {
 	mockPutObjectErr := errors.New("mock put object error")
 
 	tests := []struct {
@@ -350,7 +350,7 @@ func TestStoreAnswers(t *testing.T) {
 				},
 			}
 
-			err := c.StoreAnswers(context.Background(), []Answer{
+			err := c.StoreDocuments(context.Background(), []Document{
 				{
 					Text:     "example text",
 					Metadata: "example metadata",

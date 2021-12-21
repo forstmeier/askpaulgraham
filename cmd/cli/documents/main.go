@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	answerFilename  = "answer.json"
-	answersFilename = "answers.jsonl"
+	documentFilename  = "document.json"
+	documentsFilename = "documents.jsonl"
 )
 
 const (
@@ -93,16 +93,16 @@ func main() {
 				log.Fatalf("error getting text: %v", err)
 			}
 
-			bodyBytes, err := json.Marshal(db.Answer{
+			bodyBytes, err := json.Marshal(db.Document{
 				Metadata: *postID,
 				Text:     *text,
 			})
 			if err != nil {
-				log.Fatalf("error marshalling answer: %v", err)
+				log.Fatalf("error marshalling document: %v", err)
 			}
 
-			if err := os.WriteFile(answerFilename, bodyBytes, 0644); err != nil {
-				log.Fatalf("error writing answer file: %v", err)
+			if err := os.WriteFile(documentFilename, bodyBytes, 0644); err != nil {
+				log.Fatalf("error writing document file: %v", err)
 			}
 
 		} else if *size == bulkSize {
@@ -111,8 +111,8 @@ func main() {
 				log.Fatalf("error getting items: %v", err)
 			}
 
-			answersBody := bytes.Buffer{}
-			encoder := json.NewEncoder(&answersBody)
+			documentsBody := bytes.Buffer{}
+			encoder := json.NewEncoder(&documentsBody)
 			for _, item := range items {
 				if strings.Contains(item.Link, "1638975042") {
 					continue
@@ -124,28 +124,28 @@ func main() {
 				}
 
 				id := util.GetIDFromURL(item.Link)
-				if err := encoder.Encode(db.Answer{
+				if err := encoder.Encode(db.Document{
 					Text:     *text,
 					Metadata: id,
 				}); err != nil {
-					log.Fatalf("error encoding answer: %v", err)
+					log.Fatalf("error encoding document: %v", err)
 				}
 			}
 
-			if err := os.WriteFile(answersFilename, answersBody.Bytes(), 0644); err != nil {
-				log.Fatalf("error writing answers file: %v", err)
+			if err := os.WriteFile(documentsFilename, documentsBody.Bytes(), 0644); err != nil {
+				log.Fatalf("error writing documents file: %v", err)
 			}
 		}
 
 	} else if *action == setAction {
 		filename := ""
 		if *size == singleSize {
-			filename = answerFilename
+			filename = documentFilename
 		} else if *size == bulkSize {
-			filename = answersFilename
+			filename = documentsFilename
 		}
 
-		answers := []db.Answer{}
+		documents := []db.Document{}
 
 		bodyBytes, err := os.ReadFile(filename)
 		if err != nil {
@@ -153,42 +153,42 @@ func main() {
 		}
 
 		if *size == singleSize {
-			storedAnswers, err := dbClient.GetAnswers(ctx)
+			storedDocuments, err := dbClient.GetDocuments(ctx)
 			if err != nil {
-				log.Fatalf("error getting stored answers file: %v", err)
+				log.Fatalf("error getting stored documents file: %v", err)
 			}
 
-			answer := db.Answer{}
-			if err := json.Unmarshal(bodyBytes, &answer); err != nil {
-				log.Fatalf("error unmarshalling local answer file: %v", err)
+			document := db.Document{}
+			if err := json.Unmarshal(bodyBytes, &document); err != nil {
+				log.Fatalf("error unmarshalling local document file: %v", err)
 			}
 
-			answers = append(answers, answer)
-			for _, storedAnswer := range storedAnswers {
-				if storedAnswer.Metadata != answer.Metadata {
-					answers = append(answers, storedAnswer)
+			documents = append(documents, document)
+			for _, storedDocument := range storedDocuments {
+				if storedDocument.Metadata != document.Metadata {
+					documents = append(documents, storedDocument)
 				}
 			}
 
-			if err := dbClient.StoreText(ctx, answer.Metadata, answer.Text); err != nil {
+			if err := dbClient.StoreText(ctx, document.Metadata, document.Text); err != nil {
 				log.Fatalf("error storing markdown text file: %v", err)
 			}
 
-			if err := nlpClient.SetAnswer(ctx, answer.Metadata, answer.Text); err != nil {
+			if err := nlpClient.SetAnswer(ctx, document.Metadata, document.Text); err != nil {
 				log.Fatalf("error setting answer: %v", err)
 			}
 
 		} else if *size == bulkSize {
 			decoder := json.NewDecoder(bytes.NewReader(bodyBytes))
 			for decoder.More() {
-				answer := db.Answer{}
-				if err := decoder.Decode(&answer); err == io.EOF {
+				document := db.Document{}
+				if err := decoder.Decode(&document); err == io.EOF {
 					break
 				} else if err != nil {
-					log.Fatalf("error decoding answer: %v", err)
+					log.Fatalf("error decoding document: %v", err)
 				}
 
-				answers = append(answers, answer)
+				documents = append(documents, document)
 			}
 
 			items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")
@@ -206,17 +206,17 @@ func main() {
 				itemIDsMap[id] = struct{}{}
 			}
 
-			for _, answer := range answers {
-				if _, ok := itemIDsMap[answer.Metadata]; !ok {
-					if err := nlpClient.SetAnswer(ctx, answer.Metadata, answer.Text); err != nil {
+			for _, document := range documents {
+				if _, ok := itemIDsMap[document.Metadata]; !ok {
+					if err := nlpClient.SetAnswer(ctx, document.Metadata, document.Text); err != nil {
 						log.Fatalf("error setting answer: %v", err)
 					}
 				}
 			}
 		}
 
-		if err := dbClient.StoreAnswers(ctx, answers); err != nil {
-			log.Fatalf("error storing answers file: %v", err)
+		if err := dbClient.StoreDocuments(ctx, documents); err != nil {
+			log.Fatalf("error storing documents file: %v", err)
 		}
 	}
 }

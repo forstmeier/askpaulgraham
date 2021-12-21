@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-const answersFilename = "answers.jsonl"
+const documentsFilename = "documents.jsonl"
 
 const (
 	summaryModel = "curie"
@@ -33,7 +33,6 @@ type Client struct {
 
 type s3Client interface {
 	GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error)
-	// PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
 }
 
 // New generates a pointer instance of Client.
@@ -112,51 +111,51 @@ type getFilesRespDataJSON struct {
 	Name string `json:"filename"`
 }
 
-type answerJSON struct {
+type documentJSON struct {
 	Text     string `json:"text"`
 	Metadata string `json:"metadata"`
 }
 
 // SetAnswer implements the nlp.NLPer.SetAnswer method.
 func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
-	getAnswersResp, err := c.s3Client.GetObject(&s3.GetObjectInput{
+	getDocumentsResp, err := c.s3Client.GetObject(&s3.GetObjectInput{
 		Bucket: &c.bucketName,
-		Key:    aws.String(answersFilename),
+		Key:    aws.String(documentsFilename),
 	})
 	if err != nil {
 		return err
 	}
 
-	answers := []answerJSON{
+	documents := []documentJSON{
 		{
 			Text:     answer,
 			Metadata: id,
 		},
 	}
-	decoder := json.NewDecoder(getAnswersResp.Body)
+	decoder := json.NewDecoder(getDocumentsResp.Body)
 	for decoder.More() {
-		var answer answerJSON
-		if err := decoder.Decode(&answer); err == io.EOF {
+		var document documentJSON
+		if err := decoder.Decode(&document); err == io.EOF {
 			break
 		} else if err != nil {
 			return err
 		}
 
-		if answer.Metadata != id {
-			answers = append(answers, answer)
+		if document.Metadata != id {
+			documents = append(documents, document)
 		}
 	}
 
-	answersBody := bytes.Buffer{}
-	encoder := json.NewEncoder(&answersBody)
-	for _, answer := range answers {
-		if err := encoder.Encode(answer); err != nil {
+	documentsBody := bytes.Buffer{}
+	encoder := json.NewEncoder(&documentsBody)
+	for _, document := range documents {
+		if err := encoder.Encode(document); err != nil {
 			return err
 		}
 	}
 
-	openAIAnswersBody := bytes.Buffer{}
-	multipartWriter := multipart.NewWriter(&openAIAnswersBody)
+	openAIDocumentsBody := bytes.Buffer{}
+	multipartWriter := multipart.NewWriter(&openAIDocumentsBody)
 
 	var fileWriter, purposeWriter io.Writer
 
@@ -170,12 +169,12 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 		return err
 	}
 
-	fileWriter, err = multipartWriter.CreateFormFile("file", answersFilename)
+	fileWriter, err = multipartWriter.CreateFormFile("file", documentsFilename)
 	if err != nil {
 		return err
 	}
 
-	_, err = io.Copy(fileWriter, &answersBody)
+	_, err = io.Copy(fileWriter, &documentsBody)
 	if err != nil {
 		return err
 	}
@@ -185,7 +184,7 @@ func (c *Client) SetAnswer(ctx context.Context, id, answer string) error {
 	if err := c.helper.sendRequest(
 		http.MethodPost,
 		"https://api.openai.com/v1/files",
-		&openAIAnswersBody,
+		&openAIDocumentsBody,
 		nil,
 		map[string]string{
 			"Content-Type": multipartWriter.FormDataContentType(),
@@ -226,7 +225,7 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 
 	fileID := ""
 	for _, file := range getFilesRespBody.Data {
-		if file.Name == answersFilename {
+		if file.Name == documentsFilename {
 			fileID = file.ID
 		}
 	}

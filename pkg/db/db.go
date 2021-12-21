@@ -9,8 +9,8 @@ type Databaser interface {
 	GetSummaries(ctx context.Context) ([]Summary, error)
 	StoreSummaries(ctx context.Context, summaries []Summary) error
 	StoreText(ctx context.Context, id, text string) error
-	GetAnswers(ctx context.Context) ([]Answer, error)
-	StoreAnswers(ctx context.Context, answers []Answer) error
+	GetDocuments(ctx context.Context) ([]Document, error)
+	StoreDocuments(ctx context.Context, answers []Document) error
 	StoreQuestion(ctx context.Context, id, question string) error
 	StoreAnswer(ctx context.Context, id, answer string) error
 }
@@ -23,8 +23,8 @@ type Summary struct {
 	Summary string `json:"summary"`
 }
 
-// Answer represents a row in the answers.jsonl file.
-type Answer struct {
+// Document represents a row in the documents.jsonl file.
+type Document struct {
 	Text     string `json:"text"`
 	Metadata string `json:"metadata"`
 }

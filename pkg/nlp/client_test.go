@@ -133,7 +133,7 @@ func TestSetAnswer(t *testing.T) {
 			description: "error getting object",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, documentsFilename)),
 					error: nil,
 				},
 				{
@@ -224,7 +224,7 @@ func TestGetAnswers(t *testing.T) {
 			description: "error getting answers",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, documentsFilename)),
 					error: nil,
 				},
 				{
@@ -239,7 +239,7 @@ func TestGetAnswers(t *testing.T) {
 			description: "successful invocation",
 			responses: []response{
 				{
-					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, answersFilename)),
+					body:  []byte(fmt.Sprintf(`{"data": [{"id": "mock_id", "filename": %q}]}`, documentsFilename)),
 					error: nil,
 				},
 				{
