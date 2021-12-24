@@ -88,6 +88,18 @@ func main() {
 
 	if *action == getAction {
 		if *size == singleSize {
+			items, err := cntClient.GetItems(ctx, "http://www.aaronsw.com/2002/feeds/pgessays.rss")
+			if err != nil {
+				log.Fatalf("error getting items: %v", err)
+			}
+
+			title := ""
+			for _, item := range items {
+				if *postID == util.GetIDFromURL(item.Link) {
+					title = item.Title
+				}
+			}
+
 			postURL := fmt.Sprintf("http://www.paulgraham.com/%s.html", *postID)
 			text, err := cntClient.GetText(ctx, postURL)
 			if err != nil {
@@ -96,7 +108,7 @@ func main() {
 
 			bodyBytes, err := json.Marshal(dct.Document{
 				Metadata: *postID,
-				Text:     *text,
+				Text:     title + " " + *text,
 			})
 			if err != nil {
 				log.Fatalf("error marshalling document: %v", err)
@@ -126,7 +138,7 @@ func main() {
 
 				id := util.GetIDFromURL(item.Link)
 				if err := encoder.Encode(dct.Document{
-					Text:     *text,
+					Text:     item.Title + " " + *text,
 					Metadata: id,
 				}); err != nil {
 					log.Fatalf("error encoding document: %v", err)

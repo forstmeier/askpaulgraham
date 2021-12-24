@@ -8,6 +8,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -77,9 +78,9 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	}
 
 	data, err := json.Marshal(getSummaryReqJSON{
-		Prompt:           text + "\n\ntl;dr",
+		Prompt:           text + "\n\ntl;dr:",
 		MaxTokens:        60,
-		Temperature:      0.3,
+		Temperature:      0.45,
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,
@@ -124,9 +125,24 @@ type documentJSON struct {
 func (c *Client) SetDocuments(ctx context.Context, documents []dct.Document) error {
 	documentsBody := bytes.Buffer{}
 	encoder := json.NewEncoder(&documentsBody)
+	re, err := regexp.Compile(`\w\.\w`)
+	if err != nil {
+		return err
+	}
+
 	for _, document := range documents {
-		if err := encoder.Encode(document); err != nil {
-			return err
+		text := re.ReplaceAllStringFunc(document.Text, replaceFunc)
+		for _, paragraph := range strings.Split(text, ".\n") {
+			if paragraph == "" {
+				continue
+			}
+
+			if err := encoder.Encode(dct.Document{
+				Text:     paragraph,
+				Metadata: document.Metadata,
+			}); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -135,7 +151,7 @@ func (c *Client) SetDocuments(ctx context.Context, documents []dct.Document) err
 
 	var fileWriter, purposeWriter io.Writer
 
-	purposeWriter, err := multipartWriter.CreateFormField("purpose")
+	purposeWriter, err = multipartWriter.CreateFormField("purpose")
 	if err != nil {
 		return err
 	}
@@ -172,12 +188,17 @@ func (c *Client) SetDocuments(ctx context.Context, documents []dct.Document) err
 	return nil
 }
 
+func replaceFunc(input string) string {
+	return strings.Replace(input, ".", ".\n", -1)
+}
+
 type getAnswerReqJSON struct {
 	Model           string     `json:"model"`
 	Question        string     `json:"question"`
 	Examples        [][]string `json:"examples"`
 	ExamplesContext string     `json:"examples_context"`
 	File            string     `json:"file"`
+	Temperature     float64    `json:"temperature"`
 }
 
 type getAnswersRespJSON struct {
@@ -212,12 +233,17 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		Question: question,
 		Examples: [][]string{
 			{
-				"What is the best way to start a company?",
-				"How do I get users for my startup product?",
+				"What is the secret to a successful startup?",
+				"What you need to succeed in a startup is not expertise in startups. What you need is expertise in your own users.",
+			},
+			{
+				"What do I do to grow my company?",
+				"The way to make your startup grow, is to make something users really love.",
 			},
 		},
-		ExamplesContext: "Build something that solves a problem you have",
+		ExamplesContext: "Users are the most important thing to a startup.",
 		File:            fileID,
+		Temperature:     0.35,
 	}
 
 	dataBytes, err := json.Marshal(data)

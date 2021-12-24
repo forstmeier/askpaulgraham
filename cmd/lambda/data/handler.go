@@ -78,7 +78,7 @@ func handler(cntClient cnt.Contenter, dbClient db.Databaser, nlpClient nlp.NLPer
 					} else if len(documents) == i+1 {
 						documents = append(documents, dct.Document{
 							Metadata: id,
-							Text:     *text,
+							Text:     item.Title + " " + *text,
 						})
 					}
 				}

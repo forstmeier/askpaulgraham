@@ -43,6 +43,7 @@ Resources:
             Ref: summariesTable
           OPENAI_API_KEY:
             Ref: OpenAIAPIKey
+          RSS_URL: http://www.aaronsw.com/2002/feeds/pgessays.rss
       Events:
         ScheduleEvent:
           Type: Schedule
