@@ -199,6 +199,8 @@ type getAnswerReqJSON struct {
 	ExamplesContext string     `json:"examples_context"`
 	File            string     `json:"file"`
 	Temperature     float64    `json:"temperature"`
+	MaxTokens       int        `json:"max_tokens"`
+	Stop            []string   `json:"stop"`
 }
 
 type getAnswersRespJSON struct {
@@ -243,7 +245,13 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		},
 		ExamplesContext: "Users are the most important thing to a startup.",
 		File:            fileID,
-		Temperature:     0.35,
+		Temperature:     0.65,
+		MaxTokens:       24,
+		Stop: []string{
+			"\n---",
+			"\n===",
+			".",
+		},
 	}
 
 	dataBytes, err := json.Marshal(data)
