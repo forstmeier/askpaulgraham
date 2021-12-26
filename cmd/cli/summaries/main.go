@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	summaryFilename   = "summary.json"
-	summariesFilename = "summaries.json"
+	summaryFilename   = "etc/data/summary.json"
+	summariesFilename = "etc/data/summaries.json"
 )
 
 const (

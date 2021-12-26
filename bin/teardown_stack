@@ -11,10 +11,10 @@ summaries_table_name=$( jq -r 'map(select(.OutputKey == "SummariesTableName")) |
 
 aws dynamodb scan \
 	--table-name $questions_table_name \
-	> questions_table.json
+	> etc/data/questions_table.json
 
 aws dynamodb scan \
 	--table-name $summaries_table_name \
-	> summaries_table.json
+	> etc/data/summaries_table.json
 
 aws cloudformation delete-stack --stack-name askpaulgraham

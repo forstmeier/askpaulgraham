@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	documentFilename  = "document.json"
-	documentsFilename = "documents.jsonl"
+	documentFilename  = "etc/data/document.json"
+	documentsFilename = "etc/data/documents.jsonl"
 )
 
 const (

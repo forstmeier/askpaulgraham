@@ -9,16 +9,16 @@ samconfig.toml
 .aws-sam/
 
 # stored documents files
-documents.jsonl
-document.json
+etc/data/documents.jsonl
+etc/data/document.json
 
 # stored summaries files
-summaries.json
-summary.json
+etc/data/summaries.json
+etc/data/summary.json
 
 # exported data files
-summaries_table.json
-questions_table.json
+etc/data/summaries_table.json
+etc/data/questions_table.json
 
 # random resources
-etc/storage
+etc/storage/
