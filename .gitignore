@@ -19,3 +19,6 @@ summary.json
 # exported data files
 summaries_table.json
 questions_table.json
+
+# random resources
+etc/storage
