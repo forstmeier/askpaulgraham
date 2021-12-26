@@ -20,7 +20,7 @@ import (
 const documentsFilename = "documents.jsonl"
 
 const (
-	summaryModel = "curie"
+	summaryModel = "davinci"
 	answersModel = "curie"
 )
 
@@ -50,12 +50,13 @@ func New(newSession *session.Session, apiKey, bucketName string) *Client {
 }
 
 type getSummaryReqJSON struct {
-	Prompt           string  `json:"prompt"`
-	MaxTokens        int     `json:"max_tokens"`
-	Temperature      float64 `json:"temperature"`
-	TopP             float64 `json:"top_p"`
-	FrequencyPenalty float64 `json:"frequency_penalty"`
-	PresencePenalty  float64 `json:"presence_penalty"`
+	Prompt           string   `json:"prompt"`
+	MaxTokens        int      `json:"max_tokens"`
+	Temperature      float64  `json:"temperature"`
+	TopP             float64  `json:"top_p"`
+	FrequencyPenalty float64  `json:"frequency_penalty"`
+	PresencePenalty  float64  `json:"presence_penalty"`
+	Stop             []string `json:"stop"`
 }
 
 type getSummaryRespJSON struct {
@@ -80,10 +81,11 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	data, err := json.Marshal(getSummaryReqJSON{
 		Prompt:           text + "\n\ntl;dr:",
 		MaxTokens:        60,
-		Temperature:      0.45,
+		Temperature:      0.65,
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,
+		Stop:             []string{"."},
 	})
 	if err != nil {
 		return nil, err
