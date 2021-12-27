@@ -2,12 +2,12 @@
   <body>
     <div class="container">
       <div class="logo">
-        <img alt="Vue logo" src="../assets/logo.png" />
+        <img alt="Paul Graham profile logo" src="../assets/logo.png" />
       </div>
       <div class="body">
         <h1>Ask Paul Graham</h1>
-        <it-button @click="defaultModal = true">Info</it-button>
-        <it-modal v-model="defaultModal">
+        <it-button @click="showInfo = true">Info</it-button>
+        <it-modal v-model="showInfo">
           <template #header>
             <h2>Info</h2>
           </template>
@@ -37,20 +37,71 @@
             </p>
           </template>
         </it-modal>
+        <it-tabs box>
+          <it-tab title="Questions">
+            <form v-on:submit.prevent="submitForm">
+              <it-input placeholder="Ask your question" v-model="question" />
+              <it-button>Submit</it-button>
+              <it-loading v-if="answerLoading" radius="16"></it-loading>
+            </form>
+            <it-alert
+              v-if="answer"
+              type="success"
+              show-icon="false"
+              title="Answer"
+              v-bind:body="answer"
+            />
+          </it-tab>
+          <it-tab title="Summaries">Summaries</it-tab>
+        </it-tabs>
       </div>
     </div>
   </body>
 </template>
 
-
-
 <script>
+import axios from "axios";
+
 export default {
   name: "Main",
   data: function () {
     return {
-      defaultModal: false,
+      showInfo: false,
+      question: "",
+      answerLoading: false,
+      answer: "",
     };
+  },
+  methods: {
+    submitForm() {
+      this.$data.answerLoading = true;
+
+      if (this.$data.question.length > 100) {
+        this.$Message.danger({
+          text: "Question must be 100 characters or less",
+        });
+        return;
+      }
+
+      const body = {
+        question: this.$data.question,
+      };
+
+      axios
+        .post("https://webhook.site/41ee0a51-2eb1-4338-8f40-bbfbe78efc82", body)
+        .then((response) => {
+          this.$data.answer = response.data.answer;
+        })
+        .catch((error) => {
+          this.$Message.danger({
+            text: error.message,
+          });
+        })
+        .finally(() => {
+          this.$data.answerLoading = false;
+          this.$data.question = "";
+        });
+    },
   },
 };
 </script>
