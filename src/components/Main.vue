@@ -209,4 +209,15 @@ p {
   padding-top: 1rem;
   padding-bottom: 5rem;
 }
+
+@media screen and (max-width: 580px) {
+  .container {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  img {
+    display: none;
+  }
+}
 </style>
