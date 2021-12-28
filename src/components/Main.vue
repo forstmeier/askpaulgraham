@@ -67,6 +67,11 @@
             </it-collapse>
           </it-tab>
         </it-tabs>
+        <span>
+          <a href="https://www.buymeacoffee.com/forstmeier">Buy Me A Coffee</a>
+          and
+          <a href="https://github.com/forstmeier/askpaulgraham">GitHub</a>
+        </span>
       </div>
     </div>
   </body>
