@@ -14,8 +14,8 @@
           <template #body>
             <h3>About</h3>
             <p>
-              <b>Ask Paul Graham</b> is a for-fun side project powered by GPT-3
-              from <a href="https://openai.com/">OpenAI</a> and
+              <b>Ask Paul Graham</b> is a for-fun side project powered by
+              <a href="https://openai.com/">OpenAI's GPT-3</a> and
               <a href="http://www.paulgraham.com/">Paul Graham's essays</a>.
               OpenAI caps usage at $120 per month which is currently being
               covered by the project maintainer so usage may get throttled
