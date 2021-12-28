@@ -52,7 +52,20 @@
               v-bind:body="answer"
             />
           </it-tab>
-          <it-tab title="Summaries">Summaries</it-tab>
+          <it-tab title="Summaries">
+            <it-collapse>
+              <it-collapse-item
+                v-for="summary in summaries"
+                v-bind:key="summary.id"
+                v-bind:title="summary.title"
+              >
+                <p>
+                  {{ summary.summary }}
+                </p>
+                <a v-bind:href="summary.url">Link</a>
+              </it-collapse-item>
+            </it-collapse>
+          </it-tab>
         </it-tabs>
       </div>
     </div>
@@ -70,6 +83,7 @@ export default {
       question: "",
       answerLoading: false,
       answer: "",
+      summaries: [],
     };
   },
   methods: {
@@ -102,6 +116,18 @@ export default {
           this.$data.question = "";
         });
     },
+  },
+  created: function () {
+    axios
+      .get("https://webhook.site/41ee0a51-2eb1-4338-8f40-bbfbe78efc82")
+      .then((response) => {
+        this.$data.summaries = response.data.summaries;
+      })
+      .catch((error) => {
+        this.$Message.danger({
+          text: error.message,
+        });
+      });
   },
 };
 </script>
