@@ -102,7 +102,7 @@ export default {
       };
 
       axios
-        .post("https://webhook.site/41ee0a51-2eb1-4338-8f40-bbfbe78efc82", body)
+        .post(process.env.APG_QUESTION_URL, body)
         .then((response) => {
           this.$data.answer = response.data.answer;
         })
@@ -119,7 +119,7 @@ export default {
   },
   created: function () {
     axios
-      .get("https://webhook.site/41ee0a51-2eb1-4338-8f40-bbfbe78efc82")
+      .get(process.env.APG_SUMMARIES_URL)
       .then((response) => {
         this.$data.summaries = response.data.summaries;
       })
