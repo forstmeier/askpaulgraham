@@ -136,20 +136,6 @@ export default {
         this.$data.summaries = response.data.summaries;
       })
       .catch((error) => {
-        this.$data.summaries = [
-          {
-            id: "goodtaste",
-            url: "https://url.com/1",
-            title: "example title 1",
-            summary: "verye summary",
-          },
-          {
-            id: "very",
-            url: "https://url.com/1",
-            title: "example very 1",
-            summary: "very ish summary",
-          },
-        ];
         this.$Message.danger({
           text: error.message,
         });
