@@ -6,7 +6,9 @@
       </div>
       <div class="body">
         <h1>Ask Paul Graham</h1>
-        <it-button @click="showInfo = true">Info</it-button>
+        <div class="info">
+          <it-button @click="showInfo = true">Info</it-button>
+        </div>
         <it-modal v-model="showInfo">
           <template #header>
             <h2>Info</h2>
@@ -40,38 +42,43 @@
         <it-tabs box>
           <it-tab title="Questions">
             <form v-on:submit.prevent="submitForm">
-              <it-input placeholder="Ask your question" v-model="question" />
+              <div class="question">
+                <it-input placeholder="Ask your question" v-model="question" />
+              </div>
               <it-button>Submit</it-button>
-              <it-loading v-if="answerLoading" radius="16"></it-loading>
+              <it-loading v-if="answerLoading" radius="12"></it-loading>
             </form>
-            <it-alert
-              v-if="answer"
-              type="success"
-              show-icon="false"
-              title="Answer"
-              v-bind:body="answer"
-            />
+            <div v-if="answer" class="answer">
+              <it-alert
+                type="success"
+                show-icon="false"
+                title="Answer"
+                v-bind:body="answer"
+              />
+            </div>
           </it-tab>
           <it-tab title="Summaries">
-            <it-collapse>
-              <it-collapse-item
-                v-for="summary in summaries"
-                v-bind:key="summary.id"
-                v-bind:title="summary.title"
-              >
-                <p>
-                  {{ summary.summary }}
-                </p>
-                <a v-bind:href="summary.url">Link</a>
-              </it-collapse-item>
-            </it-collapse>
+            <div class="summaries">
+              <it-collapse>
+                <it-collapse-item
+                  v-for="summary in summaries"
+                  v-bind:key="summary.id"
+                  v-bind:title="summary.title"
+                >
+                  <p>
+                    {{ summary.summary }}
+                  </p>
+                  <a v-bind:href="summary.url">Link</a>
+                </it-collapse-item>
+              </it-collapse>
+            </div>
           </it-tab>
         </it-tabs>
-        <span>
+        <div class="links">
           <a href="https://www.buymeacoffee.com/forstmeier">Buy Me A Coffee</a>
           and
           <a href="https://github.com/forstmeier/askpaulgraham">GitHub</a>
-        </span>
+        </div>
       </div>
     </div>
   </body>
@@ -129,6 +136,20 @@ export default {
         this.$data.summaries = response.data.summaries;
       })
       .catch((error) => {
+        this.$data.summaries = [
+          {
+            id: "goodtaste",
+            url: "https://url.com/1",
+            title: "example title 1",
+            summary: "verye summary",
+          },
+          {
+            id: "very",
+            url: "https://url.com/1",
+            title: "example very 1",
+            summary: "very ish summary",
+          },
+        ];
         this.$Message.danger({
           text: error.message,
         });
@@ -154,15 +175,38 @@ body {
   text-align: center;
 }
 
+.body {
+  padding-top: 2rem;
+}
+
 img {
   border-radius: 50%;
 }
 
-h3 {
+h1 {
+  font-size: 3rem;
+  text-align: center;
   padding-bottom: 1rem;
 }
 
+form,
+.summaries {
+  padding: 1rem;
+}
+
+.info,
+.question,
+h3,
 p {
   padding-bottom: 1rem;
+}
+
+.answer {
+  padding: 0rem 1rem 1rem 1rem;
+}
+
+.links {
+  padding-top: 1rem;
+  padding-bottom: 5rem;
 }
 </style>
