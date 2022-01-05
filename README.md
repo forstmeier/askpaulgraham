@@ -10,6 +10,8 @@
 
 Feel free to reach out via direct message on [Twitter](https://twitter.com/forstmeier).  
 
+The frontend is hosted on [Cyclic](https://www.cyclic.sh/) and the backend is hosted on AWS using SAM.
+
 ## Contribute :zany_face:
 
 Fork this repository and open a [pull request](https://github.com/forstmeier/askpaulgraham/pulls) for code changes or submit an [issue](https://github.com/forstmeier/askpaulgraham/issues) if you spot a bug.  
