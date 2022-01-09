@@ -63,7 +63,7 @@ func (m *mockS3Client) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput,
 
 func TestGetSummary(t *testing.T) {
 	getSummaryErr := errors.New("mock get summary error")
-	summary := "mock summary"
+	summary := "Mock Summary"
 
 	tests := []struct {
 		description string
@@ -215,11 +215,11 @@ func TestGetAnswers(t *testing.T) {
 					error: nil,
 				},
 				{
-					body:  []byte(`{"answers": ["answer"]}`),
+					body:  []byte(`{"answers": [" answer "]}`),
 					error: nil,
 				},
 			},
-			answers: []string{"answer"},
+			answers: []string{"Answer"},
 			error:   nil,
 		},
 	}

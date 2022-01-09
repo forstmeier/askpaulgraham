@@ -81,11 +81,11 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	data, err := json.Marshal(getSummaryReqJSON{
 		Prompt:           text + "\n\ntl;dr:",
 		MaxTokens:        60,
-		Temperature:      0.65,
+		Temperature:      0.45,
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,
-		Stop:             []string{"."},
+		Stop:             []string{"<|endoftext|>"},
 	})
 	if err != nil {
 		return nil, err
@@ -104,7 +104,9 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 		return nil, err
 	}
 
-	return &responseBody.Choices[0].Text, nil
+	summary := formatString(responseBody.Choices[0].Text)
+
+	return &summary, nil
 }
 
 type getFilesRespJSON struct {
@@ -261,12 +263,12 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		return nil, err
 	}
 
-	answers := getAnswersRespJSON{}
+	responseBody := getAnswersRespJSON{}
 	if err := c.helper.sendRequest(
 		http.MethodPost,
 		"https://api.openai.com/v1/answers",
 		bytes.NewReader(dataBytes),
-		&answers,
+		&responseBody,
 		map[string]string{
 			"Content-Type": "application/json",
 		},
@@ -274,5 +276,22 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		return nil, err
 	}
 
-	return answers.Answers, nil
+	answers := []string{}
+	for _, answer := range responseBody.Answers {
+		answer = formatString(answer)
+		answers = append(answers, answer)
+	}
+
+	return answers, nil
+}
+
+func formatString(input string) string {
+	if input == "" || len(input) < 2 {
+		return input
+	}
+
+	input = strings.TrimSpace(input)
+	input = strings.ToUpper(string(input[0])) + string(input[1:])
+
+	return input
 }
