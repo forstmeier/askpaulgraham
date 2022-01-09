@@ -114,7 +114,7 @@ export default {
       };
 
       axios
-        .post(process.env.APG_QUESTION_URL, body)
+        .post("/question", body)
         .then((response) => {
           this.$data.answer = response.data.answer;
         })
@@ -131,7 +131,7 @@ export default {
   },
   created: function () {
     axios
-      .get(process.env.APG_SUMMARIES_URL)
+      .get("/summaries")
       .then((response) => {
         this.$data.summaries = response.data.summaries;
       })
