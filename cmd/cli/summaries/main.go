@@ -42,6 +42,8 @@ type summaryJSON struct {
 	Summary string `json:"summary"`
 }
 
+// The summaries CLI is used to generate and upload essay summaries
+// to be presented via the DynamoDB table.
 func main() {
 	ctx := context.Background()
 
@@ -100,7 +102,7 @@ func main() {
 
 		summaries := []summaryJSON{}
 		for _, item := range items {
-			if (*size == bulkSize) || (*size == singleSize && strings.Contains(item.Link, *postID)) {
+			if (*size == bulkSize) || (*size == singleSize && strings.Contains(item.Link, *postID+".html")) {
 				text, err := cntClient.GetText(ctx, item.Link)
 				if err != nil {
 					log.Fatalf("error getting text: %v", err)

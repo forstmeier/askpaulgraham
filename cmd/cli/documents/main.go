@@ -36,6 +36,8 @@ const (
 	bulkSize   = "bulk"
 )
 
+// The documents CLI is used to get and set documents that are used
+// go answer questions in the OpenAI API.
 func main() {
 	ctx := context.Background()
 
