@@ -130,6 +130,8 @@ export default {
     },
   },
   created: function () {
+    response.data.summaries.list.sort((a, b) => (a.number > b.number ? 1 : -1));
+
     axios
       .get("/summaries")
       .then((response) => {
