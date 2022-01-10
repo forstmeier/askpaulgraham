@@ -133,9 +133,7 @@ export default {
     axios
       .get("/summaries")
       .then((response) => {
-        response.data.summaries.list.sort((a, b) =>
-          a.number > b.number ? 1 : -1
-        );
+        response.data.summaries.sort((a, b) => (a.number > b.number ? 1 : -1));
         this.$data.summaries = response.data.summaries;
       })
       .catch((error) => {
