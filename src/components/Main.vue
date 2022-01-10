@@ -134,7 +134,7 @@ export default {
       .get("/summaries")
       .then((response) => {
         this.$data.summaries = response.data.summaries.sort(
-          (a, b) => a.number - b.number
+          (a, b) => b.number - a.number
         );
       })
       .catch((error) => {
