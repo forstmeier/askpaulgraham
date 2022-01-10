@@ -32,7 +32,7 @@ const (
 )
 
 type summariesJSON struct {
-	Items []summaryJSON `json:"Items"`
+	Items []summaryJSON `json:"items"`
 }
 
 type summaryJSON struct {
@@ -40,6 +40,7 @@ type summaryJSON struct {
 	URL     string `json:"url"`
 	Title   string `json:"title"`
 	Summary string `json:"summary"`
+	Number  int    `json:"number"`
 }
 
 // The summaries CLI is used to generate and upload essay summaries
@@ -102,6 +103,10 @@ func main() {
 
 		summaries := []summaryJSON{}
 		for _, item := range items {
+			if strings.Contains(item.Link, "1638975042") {
+				continue
+			}
+
 			if (*size == bulkSize) || (*size == singleSize && strings.Contains(item.Link, *postID+".html")) {
 				text, err := cntClient.GetText(ctx, item.Link)
 				if err != nil {
@@ -119,6 +124,7 @@ func main() {
 					URL:     item.Link,
 					Title:   item.Title,
 					Summary: *summary,
+					Number:  item.Number,
 				})
 			}
 		}
@@ -163,6 +169,7 @@ func main() {
 				URL:     item.URL,
 				Title:   item.Title,
 				Summary: item.Summary,
+				Number:  item.Number,
 			})
 		}
 		if err := dbClient.StoreSummaries(ctx, summariesData); err != nil {

@@ -24,6 +24,12 @@ const (
 	answersModel = "curie"
 )
 
+const (
+	maxContextTokenLength = 2049 // most OpenAI model max
+	maxTokens             = 60
+	temperature           = 0.45
+)
+
 var _ NLPer = &Client{}
 
 // Client implements the nlp.NLPer interface.
@@ -71,17 +77,17 @@ type getSummaryRespChoiceJSON struct {
 // GetSummary implements the nlp.NLPer.GetSummary method
 // and generates a summary of the provided text with OpenAI.
 func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
-	// check to work within OpenAI token limits
-	wordCount := strings.Split(text, " ")
-	if len(wordCount) > 1500 {
+	// approximate check to work within OpenAI token limits
+	characters := len(text)
+	if (characters / 4) > (maxContextTokenLength - maxTokens) {
 		message := "Surpassed maximum word count permitted by OpenAI"
 		return &message, nil
 	}
 
 	data, err := json.Marshal(getSummaryReqJSON{
 		Prompt:           text + "\n\ntl;dr:",
-		MaxTokens:        60,
-		Temperature:      0.45,
+		MaxTokens:        maxTokens,
+		Temperature:      temperature,
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,

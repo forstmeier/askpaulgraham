@@ -118,11 +118,12 @@ func Test_handler(t *testing.T) {
 					URL:     "mock_url",
 					Title:   "mock_title",
 					Summary: "mock_summary",
+					Number:  1,
 				},
 			},
 			mockGetSummariesError: nil,
 			statusCode:            http.StatusOK,
-			body:                  `{"message":"success","summaries":[{"id":"mock_id","url":"mock_url","title":"mock_title","summary":"mock_summary"}]}`,
+			body:                  `{"message":"success","summaries":[{"id":"mock_id","url":"mock_url","title":"mock_title","summary":"mock_summary","number":1}]}`,
 		},
 		{
 			description: "error storing question",

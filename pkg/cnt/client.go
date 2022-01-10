@@ -34,7 +34,14 @@ func (c *Client) GetItems(ctx context.Context, address string) ([]ItemXML, error
 		return nil, err
 	}
 
-	return rss.Channel.Items, nil
+	count := len(rss.Channel.Items)
+	items := make([]ItemXML, count)
+	for i, item := range rss.Channel.Items {
+		item.Number = count - i
+		items[i] = item
+	}
+
+	return items, nil
 }
 
 // GetText implements the cnt.Contenter.GetText method

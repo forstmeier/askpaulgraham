@@ -21,6 +21,7 @@ type ChannelXML struct {
 
 // ItemXML represents an object in the target RSS feed.
 type ItemXML struct {
-	Link  string `xml:"link"`
-	Title string `xml:"title"`
+	Link   string `xml:"link"`
+	Title  string `xml:"title"`
+	Number int
 }

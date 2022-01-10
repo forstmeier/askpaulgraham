@@ -40,8 +40,9 @@ func TestGetItems(t *testing.T) {
 </rss>`,
 			response: []ItemXML{
 				{
-					Link:  "http://www.paulgraham.com/goodtaste.html",
-					Title: "Is There Such a Thing as Good Taste?",
+					Link:   "http://www.paulgraham.com/goodtaste.html",
+					Title:  "Is There Such a Thing as Good Taste?",
+					Number: 1,
 				},
 			},
 			error: nil,

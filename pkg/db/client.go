@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -85,11 +86,17 @@ func (c *Client) GetSummaries(ctx context.Context) ([]Summary, error) {
 
 	datas := make([]Summary, len(scanOutput.Items))
 	for i, item := range scanOutput.Items {
+		number, err := strconv.Atoi(*item["number"].N)
+		if err != nil {
+			return nil, err
+		}
+
 		datas[i] = Summary{
 			ID:      *item["id"].S,
 			URL:     *item["url"].S,
 			Title:   *item["title"].S,
 			Summary: *item["summary"].S,
+			Number:  number,
 		}
 	}
 
@@ -123,6 +130,9 @@ func (c *Client) StoreSummaries(ctx context.Context, summaries []Summary) error 
 						},
 						"summary": {
 							S: aws.String(summary.Summary),
+						},
+						"number": {
+							N: aws.String(strconv.Itoa(summary.Number)),
 						},
 					},
 				},

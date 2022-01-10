@@ -150,6 +150,9 @@ func TestGetSummaries(t *testing.T) {
 						"summary": {
 							S: aws.String("mock_summary"),
 						},
+						"number": {
+							N: aws.String("1"),
+						},
 					},
 				},
 			},
@@ -160,6 +163,7 @@ func TestGetSummaries(t *testing.T) {
 					URL:     "mock_url",
 					Title:   "mock_title",
 					Summary: "mock_summary",
+					Number:  1,
 				},
 			},
 			error: nil,

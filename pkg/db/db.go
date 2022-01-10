@@ -25,4 +25,5 @@ type Summary struct {
 	URL     string `json:"url"`
 	Title   string `json:"title"`
 	Summary string `json:"summary"`
+	Number  int    `json:"number"`
 }
