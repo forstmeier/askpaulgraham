@@ -26,8 +26,10 @@ const (
 
 const (
 	maxContextTokenLength = 2049 // most OpenAI model max
-	maxTokens             = 60
-	temperature           = 0.50
+	summaryMaxTokens      = 60
+	summaryTemperature    = 0.50
+	questionMaxTokens     = 120
+	questionTemperature   = 0.50
 )
 
 var _ NLPer = &Client{}
@@ -79,15 +81,15 @@ type getSummaryRespChoiceJSON struct {
 func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	// approximate check to work within OpenAI token limits
 	characters := len(text)
-	if (characters / 4) > (maxContextTokenLength - maxTokens) {
+	if (characters / 4) > (maxContextTokenLength - summaryMaxTokens) {
 		message := "Surpassed maximum word count permitted by OpenAI."
 		return &message, nil
 	}
 
 	data, err := json.Marshal(getSummaryReqJSON{
 		Prompt:           text + "\n\ntl;dr:",
-		MaxTokens:        maxTokens,
-		Temperature:      temperature,
+		MaxTokens:        summaryMaxTokens,
+		Temperature:      summaryTemperature,
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,
@@ -110,7 +112,7 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 		return nil, err
 	}
 
-	summary := formatString(responseBody.Choices[0].Text) + "."
+	summary := formatString(responseBody.Choices[0].Text)
 
 	return &summary, nil
 }
@@ -255,12 +257,13 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		},
 		ExamplesContext: "Users are the most important thing to a startup.",
 		File:            fileID,
-		Temperature:     0.65,
-		MaxTokens:       24,
+		MaxTokens:       questionMaxTokens,
+		Temperature:     questionTemperature,
 		Stop: []string{
 			"\n---",
 			"\n===",
 			".",
+			"<|endoftext|>",
 		},
 	}
 
@@ -297,7 +300,7 @@ func formatString(input string) string {
 	}
 
 	input = strings.TrimSpace(input)
-	input = strings.ToUpper(string(input[0])) + string(input[1:])
+	input = strings.ToUpper(string(input[0])) + string(input[1:]) + "."
 
 	return input
 }
