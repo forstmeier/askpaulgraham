@@ -20,14 +20,14 @@ import (
 const documentsFilename = "documents.jsonl"
 
 const (
-	summaryModel = "davinci"
+	summaryModel = "curie"
 	answersModel = "curie"
 )
 
 const (
 	maxContextTokenLength = 2049 // most OpenAI model max
 	maxTokens             = 60
-	temperature           = 0.45
+	temperature           = 0.50
 )
 
 var _ NLPer = &Client{}
@@ -80,7 +80,7 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	// approximate check to work within OpenAI token limits
 	characters := len(text)
 	if (characters / 4) > (maxContextTokenLength - maxTokens) {
-		message := "Surpassed maximum word count permitted by OpenAI"
+		message := "Surpassed maximum word count permitted by OpenAI."
 		return &message, nil
 	}
 
@@ -91,7 +91,7 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,
-		Stop:             []string{"<|endoftext|>"},
+		Stop:             []string{".", "<|endoftext|>"},
 	})
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 		return nil, err
 	}
 
-	summary := formatString(responseBody.Choices[0].Text)
+	summary := formatString(responseBody.Choices[0].Text) + "."
 
 	return &summary, nil
 }

@@ -107,7 +107,7 @@ func main() {
 				continue
 			}
 
-			if (*size == bulkSize) || (*size == singleSize && strings.Contains(item.Link, *postID+".html")) {
+			if (*size == bulkSize) || (*size == singleSize && strings.Contains(item.Link, "/"+*postID+".html")) {
 				text, err := cntClient.GetText(ctx, item.Link)
 				if err != nil {
 					log.Fatalf("error getting text: %v", err)
