@@ -20,16 +20,16 @@ import (
 const documentsFilename = "documents.jsonl"
 
 const (
-	summaryModel = "curie"
-	answersModel = "davinci"
+	summariesModel = "curie"
+	answersModel   = "davinci"
 )
 
 const (
 	maxContextTokenLength = 2049 // most OpenAI model max
-	summaryMaxTokens      = 60
-	summaryTemperature    = 0.50
-	questionMaxTokens     = 120
-	questionTemperature   = 0.50
+	summariesMaxTokens    = 60
+	summariesTemperature  = 0.50
+	answersMaxTokens      = 120
+	answersTemperature    = 0.45
 )
 
 var _ NLPer = &Client{}
@@ -81,15 +81,15 @@ type getSummaryRespChoiceJSON struct {
 func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	// approximate check to work within OpenAI token limits
 	characters := len(text)
-	if (characters / 4) > (maxContextTokenLength - summaryMaxTokens) {
+	if (characters / 4) > (maxContextTokenLength - summariesMaxTokens) {
 		message := "Surpassed maximum word count permitted by OpenAI."
 		return &message, nil
 	}
 
 	data, err := json.Marshal(getSummaryReqJSON{
 		Prompt:           text + "\n\ntl;dr:",
-		MaxTokens:        summaryMaxTokens,
-		Temperature:      summaryTemperature,
+		MaxTokens:        summariesMaxTokens,
+		Temperature:      summariesTemperature,
 		TopP:             1.0,
 		FrequencyPenalty: 0.0,
 		PresencePenalty:  0.0,
@@ -102,7 +102,7 @@ func (c *Client) GetSummary(ctx context.Context, text string) (*string, error) {
 	responseBody := getSummaryRespJSON{}
 	if err := c.helper.sendRequest(
 		http.MethodPost,
-		fmt.Sprintf("https://api.openai.com/v1/engines/%s/completions", summaryModel),
+		fmt.Sprintf("https://api.openai.com/v1/engines/%s/completions", summariesModel),
 		bytes.NewReader(data),
 		&responseBody,
 		map[string]string{
@@ -257,8 +257,8 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		},
 		ExamplesContext: "Users are the most important thing to a startup.",
 		File:            fileID,
-		MaxTokens:       questionMaxTokens,
-		Temperature:     questionTemperature,
+		MaxTokens:       answersMaxTokens,
+		Temperature:     answersTemperature,
 		Stop: []string{
 			"\n---",
 			"\n===",
