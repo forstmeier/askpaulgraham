@@ -2,7 +2,11 @@
   <body>
     <div class="container">
       <div class="logo">
-        <img alt="Paul Graham profile logo" src="../assets/logo.png" />
+        <img
+          alt="Paul Graham profile logo"
+          src="../assets/logo.png"
+          v-bind:class="{ loading: this.$data.answerLoading }"
+        />
       </div>
       <div class="body">
         <h1>Ask Paul Graham</h1>
@@ -46,7 +50,6 @@
                 <it-input placeholder="Ask your question" v-model="question" />
               </div>
               <it-button>Submit</it-button>
-              <it-loading v-if="answerLoading" radius="12"></it-loading>
             </form>
             <div v-if="answer" class="answer">
               <it-alert
@@ -125,7 +128,6 @@ export default {
         })
         .finally(() => {
           this.$data.answerLoading = false;
-          this.$data.question = "";
         });
     },
   },
@@ -171,6 +173,11 @@ img {
   border-radius: 50%;
 }
 
+.loading {
+  animation: rotation 2s infinite linear;
+  filter: grayscale(100%);
+}
+
 h1 {
   font-size: 3rem;
   text-align: center;
@@ -196,6 +203,15 @@ p {
 .links {
   padding-top: 1rem;
   padding-bottom: 5rem;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(359deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 @media screen and (max-width: 580px) {
