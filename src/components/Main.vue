@@ -122,9 +122,13 @@ export default {
           this.$data.answer = response.data.answer;
         })
         .catch((error) => {
-          this.$Message.danger({
-            text: error.message,
-          });
+          if (error.response.status === 503) {
+            this.$data.answer = "Sorry, I wasn't able to answer that question.";
+          } else {
+            this.$Message.danger({
+              text: error.message,
+            });
+          }
         })
         .finally(() => {
           this.$data.answerLoading = false;
@@ -174,7 +178,7 @@ img {
 }
 
 .loading {
-  animation: rotation 2s infinite linear;
+  animation: rotation 1s infinite linear;
   filter: grayscale(100%);
 }
 
