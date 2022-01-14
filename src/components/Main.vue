@@ -221,7 +221,11 @@ p {
   }
 
   img {
-    display: none;
+    width: 50%;
+  }
+
+  h1 {
+    font-size: 2rem;
   }
 }
 </style>
