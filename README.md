@@ -10,7 +10,7 @@
 
 Feel free to reach out via direct message on [Twitter](https://twitter.com/forstmeier).  
 
-The frontend is hosted on [Cyclic](https://www.cyclic.sh/) and the backend is hosted on AWS using SAM. They have examples available on their [GitHub](https://github.com/cyclic-software).  
+The frontend is hosted on [Cyclic](https://www.cyclic.sh/) and the backend is hosted on AWS using SAM.  
 
 ## Contribute :zany_face:
 
