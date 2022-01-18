@@ -60,7 +60,7 @@ func (m *mockDBClient) StoreAnswer(ctx context.Context, id, answer string) error
 }
 
 type mockNLPClient struct {
-	mockGetAnswersOutput []string
+	mockGetAnswersOutput *string
 	mockGetAnswersError  error
 }
 
@@ -72,18 +72,20 @@ func (m *mockNLPClient) SetDocuments(ctx context.Context, document []dct.Documen
 	return nil
 }
 
-func (m *mockNLPClient) GetAnswers(ctx context.Context, question string) ([]string, error) {
+func (m *mockNLPClient) GetAnswer(ctx context.Context, question, userID string) (*string, error) {
 	return m.mockGetAnswersOutput, m.mockGetAnswersError
 }
 
 func Test_handler(t *testing.T) {
+	mockAnswer := "mock answer"
+
 	tests := []struct {
 		description            string
 		request                events.APIGatewayProxyRequest
 		mockGetSummariesOutput []db.Summary
 		mockGetSummariesError  error
 		mockStoreQuestionError error
-		mockGetAnswersOutput   []string
+		mockGetAnswersOutput   *string
 		mockGetAnswersError    error
 		mockStoreAnwerError    error
 		statusCode             int
@@ -154,7 +156,7 @@ func Test_handler(t *testing.T) {
 				Body:       `{"question":"mock_question"}`,
 			},
 			mockStoreQuestionError: nil,
-			mockGetAnswersOutput:   []string{"mock_answer"},
+			mockGetAnswersOutput:   &mockAnswer,
 			mockGetAnswersError:    nil,
 			mockStoreAnwerError:    errors.New("mock store answer error"),
 			statusCode:             http.StatusInternalServerError,
@@ -167,10 +169,10 @@ func Test_handler(t *testing.T) {
 				Body:       `{"question":"mock_question"}`,
 			},
 			mockStoreQuestionError: nil,
-			mockGetAnswersOutput:   []string{"mock_answer"},
+			mockGetAnswersOutput:   &mockAnswer,
 			mockGetAnswersError:    nil,
 			statusCode:             http.StatusOK,
-			body:                   `{"message":"success","answer":"mock_answer"}`,
+			body:                   `{"message":"success","answer":"mock answer"}`,
 		},
 	}
 

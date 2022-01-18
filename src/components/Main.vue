@@ -99,6 +99,7 @@ export default {
       answerLoading: false,
       answer: "",
       summaries: [],
+      userID: "",
     };
   },
   methods: {
@@ -114,12 +115,18 @@ export default {
 
       const body = {
         question: this.$data.question,
+        user_id: this.$data.userID,
       };
 
       axios
         .post("/question", body)
         .then((response) => {
-          this.$data.answer = response.data.answer;
+          if (response.data.answer === "") {
+            this.$data.answer =
+              "Sorry, I don't know the answer to that question.";
+          } else {
+            this.$data.answer = response.data.answer;
+          }
         })
         .catch((error) => {
           if (error.response.status === 503) {
@@ -136,6 +143,10 @@ export default {
     },
   },
   created: function () {
+    axios.get("https://api.ipify.org?format=json").then((response) => {
+      this.$data.userID = response.data.ip;
+    });
+
     axios
       .get("/summaries")
       .then((response) => {

@@ -175,10 +175,12 @@ func TestGetAnswers(t *testing.T) {
 	getFilesErr := errors.New("mock get files error")
 	getAnswersErr := errors.New("mock get answers error")
 
+	mockAnswer := "Answer."
+
 	tests := []struct {
 		description string
 		responses   []response
-		answers     []string
+		answer      *string
 		error       error
 	}{
 		{
@@ -189,8 +191,8 @@ func TestGetAnswers(t *testing.T) {
 					error: getFilesErr,
 				},
 			},
-			answers: nil,
-			error:   getFilesErr,
+			answer: nil,
+			error:  getFilesErr,
 		},
 		{
 			description: "error getting answers",
@@ -204,8 +206,8 @@ func TestGetAnswers(t *testing.T) {
 					error: getAnswersErr,
 				},
 			},
-			answers: nil,
-			error:   getAnswersErr,
+			answer: nil,
+			error:  getAnswersErr,
 		},
 		{
 			description: "successful invocation",
@@ -218,9 +220,13 @@ func TestGetAnswers(t *testing.T) {
 					body:  []byte(`{"answers": [" answer "]}`),
 					error: nil,
 				},
+				{
+					body:  []byte(`{"choices": [{"text": "0"}]}`),
+					error: nil,
+				},
 			},
-			answers: []string{"Answer."},
-			error:   nil,
+			answer: &mockAnswer,
+			error:  nil,
 		},
 	}
 
@@ -235,12 +241,12 @@ func TestGetAnswers(t *testing.T) {
 				helper: h,
 			}
 
-			answers, err := c.GetAnswers(context.Background(), "question")
+			answers, err := c.GetAnswer(context.Background(), "question", "userID")
 			if err != test.error {
 				t.Errorf("incorrect error, received: %v, expected: %v", err, test.error)
 			}
-			if !reflect.DeepEqual(answers, test.answers) {
-				t.Errorf("incorrect answers, received: %v, expected: %v", answers, test.answers)
+			if !reflect.DeepEqual(answers, test.answer) {
+				t.Errorf("incorrect answers, received: %v, expected: %v", answers, test.answer)
 			}
 		})
 	}

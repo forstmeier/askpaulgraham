@@ -11,5 +11,5 @@ import (
 type NLPer interface {
 	GetSummary(ctx context.Context, text string) (*string, error)
 	SetDocuments(ctx context.Context, documents []dct.Document) error
-	GetAnswers(ctx context.Context, question string) ([]string, error)
+	GetAnswer(ctx context.Context, question, userID string) (*string, error)
 }

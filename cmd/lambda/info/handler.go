@@ -16,6 +16,7 @@ import (
 
 type requestPayload struct {
 	Question string `json:"question"`
+	UserID   string `json:"user_id"`
 }
 
 func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -68,7 +69,7 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 				)
 			}
 
-			answers, err := nlpClient.GetAnswers(ctx, payload.Question)
+			answer, err := nlpClient.GetAnswer(ctx, payload.Question, payload.UserID)
 			if err != nil {
 				return util.SendResponse(
 					http.StatusInternalServerError,
@@ -77,7 +78,7 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 				)
 			}
 
-			if err := dbClient.StoreAnswer(ctx, id, answers[0]); err != nil {
+			if err := dbClient.StoreAnswer(ctx, id, *answer); err != nil {
 				return util.SendResponse(
 					http.StatusInternalServerError,
 					err,
@@ -87,7 +88,7 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 
 			return util.SendResponse(
 				http.StatusOK,
-				answers[0],
+				*answer,
 				"SUCCESSFUL_POST_RESPONSE",
 			)
 

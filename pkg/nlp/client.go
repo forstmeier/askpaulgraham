@@ -213,15 +213,38 @@ type getAnswerReqJSON struct {
 	Temperature     float64    `json:"temperature"`
 	MaxTokens       int        `json:"max_tokens"`
 	Stop            []string   `json:"stop"`
+	User            string     `json:"user"`
 }
 
 type getAnswersRespJSON struct {
 	Answers []string `json:"answers"`
 }
 
-// GetAnswers implements the nlp.NLPer.GetAnswer method
+// {"prompt": "<|endoftext|>[prompt]\n--\nLabel:",
+// "temperature": 0,
+//  "max_tokens": 1,
+//  "top_p":0,
+//  "logprobs": 10}'
+
+type getFilterReqJSON struct {
+	Prompt      string  `json:"prompt"`
+	Temperature float64 `json:"temperature"`
+	MaxTokens   int     `json:"max_tokens"`
+	TopP        float64 `json:"top_p"`
+	LogProbs    int     `json:"logprobs"`
+}
+
+type getFilterRespJSON struct {
+	Choices []choice `json:"choices"`
+}
+
+type choice struct {
+	Text string `json:"text"`
+}
+
+// GetAnswer implements the nlp.NLPer.GetAnswer method
 // and generates answers to the provided question using OpenAI.
-func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, error) {
+func (c *Client) GetAnswer(ctx context.Context, question, userID string) (*string, error) {
 	getFilesRespBody := getFilesRespJSON{}
 	if err := c.helper.sendRequest(
 		http.MethodGet,
@@ -242,7 +265,7 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		}
 	}
 
-	data := getAnswerReqJSON{
+	getAnswerReq := getAnswerReqJSON{
 		Model:    answersModel,
 		Question: question,
 		Examples: [][]string{
@@ -265,19 +288,20 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 			".",
 			"<|endoftext|>",
 		},
+		User: userID,
 	}
 
-	dataBytes, err := json.Marshal(data)
+	getAnswerReqBytes, err := json.Marshal(getAnswerReq)
 	if err != nil {
 		return nil, err
 	}
 
-	responseBody := getAnswersRespJSON{}
+	getAnswersRespBody := getAnswersRespJSON{}
 	if err := c.helper.sendRequest(
 		http.MethodPost,
 		"https://api.openai.com/v1/answers",
-		bytes.NewReader(dataBytes),
-		&responseBody,
+		bytes.NewReader(getAnswerReqBytes),
+		&getAnswersRespBody,
 		map[string]string{
 			"Content-Type": "application/json",
 		},
@@ -285,13 +309,42 @@ func (c *Client) GetAnswers(ctx context.Context, question string) ([]string, err
 		return nil, err
 	}
 
-	answers := []string{}
-	for _, answer := range responseBody.Answers {
-		answer = formatString(answer)
-		answers = append(answers, answer)
+	answer := ""
+	for _, responseAnswer := range getAnswersRespBody.Answers {
+		answer = formatString(responseAnswer)
 	}
 
-	return answers, nil
+	getFilterReq := getFilterReqJSON{
+		Prompt:      fmt.Sprintf("<|endoftext|>%s\n--\nLabel:", answer),
+		Temperature: 0,
+		MaxTokens:   1,
+		TopP:        0,
+		LogProbs:    10,
+	}
+
+	getFilterReqBytes, err := json.Marshal(getFilterReq)
+	if err != nil {
+		return nil, err
+	}
+
+	getFilterRespBody := getFilterRespJSON{}
+	if err := c.helper.sendRequest(
+		http.MethodPost,
+		"https://api.openai.com/v1/engines/content-filter-alpha/completions",
+		bytes.NewReader(getFilterReqBytes),
+		&getFilterRespBody,
+		map[string]string{
+			"Content-Type": "application/json",
+		},
+	); err != nil {
+		return nil, err
+	}
+
+	if len(getFilterRespBody.Choices) > 0 && getFilterRespBody.Choices[0].Text == "2" {
+		answer = ""
+	}
+
+	return &answer, nil
 }
 
 func formatString(input string) string {

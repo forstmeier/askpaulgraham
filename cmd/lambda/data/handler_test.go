@@ -89,7 +89,7 @@ func (m *mockNLPClient) SetDocuments(ctx context.Context, documents []dct.Docume
 	return m.mockSetDocumentsError
 }
 
-func (m *mockNLPClient) GetAnswers(ctx context.Context, question string) ([]string, error) {
+func (m *mockNLPClient) GetAnswer(ctx context.Context, question, userID string) (*string, error) {
 	return nil, nil
 }
 
