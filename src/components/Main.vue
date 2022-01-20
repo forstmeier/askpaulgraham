@@ -110,6 +110,7 @@ export default {
         this.$Message.danger({
           text: "Question must be 100 characters or less",
         });
+        this.$data.answerLoading = false;
         return;
       }
 

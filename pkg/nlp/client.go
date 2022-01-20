@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -263,6 +264,10 @@ func (c *Client) GetAnswer(ctx context.Context, question, userID string) (*strin
 		if file.Name == documentsFilename {
 			fileID = file.ID
 		}
+	}
+
+	if len(question) > 100 {
+		return nil, errors.New("question must be less than or equal to 100 characters")
 	}
 
 	getAnswerReq := getAnswerReqJSON{
