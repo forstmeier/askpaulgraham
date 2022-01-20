@@ -23,20 +23,20 @@
               <b>Ask Paul Graham</b> is a for-fun side project powered by
               <a href="https://openai.com/">OpenAI's GPT-3</a> and
               <a href="http://www.paulgraham.com/">Paul Graham's essays</a>.
-              OpenAI caps usage at $120 per month which is currently being
+              OpenAI capped costs at $360 per month which is currently being
               covered by the project maintainer so usage may get throttled
               depending on demand.
             </p>
             <h3>Questions</h3>
             <p>
-              The <b>question</b> feature answers user-provided questions using
+              The <b>questions</b> feature answers user-provided questions using
               Graham's essays as training data. Note that these are answers
               <i>from GPT-3</i> and do not necessarily reflect Paul Graham's
               opinions.
             </p>
             <h3>Summaries</h3>
             <p>
-              The <b>summary</b> feature provides GPT-3-generated summaries of
+              The <b>summaries</b> feature provides GPT-3-generated summaries of
               Graham's essays and may not necessarily reflect his summary of the
               given essay. Not all essays have been included due to length
               constraints on GPT-3.
