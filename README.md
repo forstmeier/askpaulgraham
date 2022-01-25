@@ -2,6 +2,8 @@
 
 > Pick Paul Graham's brain 🎨
 
+Try it here: [https://askpaulgraham.cyclic.app/](https://askpaulgraham.cyclic.app/)
+
 ## About :sunglasses:
 
 `askpaulgraham` is a for-fun side project using [OpenAI's GPT-3](https://openai.com/) and [Paul Graham's essays](http://www.paulgraham.com/). Both the **question** and **summaries** features are powered by GPT-3 and may not necessarily provide output that reflects Paul Graham's opinions.  
