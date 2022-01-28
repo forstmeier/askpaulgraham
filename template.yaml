@@ -10,80 +10,11 @@ Parameters:
   OpenAIAPIKey:
     Type: String
     Description: OpenAI API key
-  SchedulerEnabled:
-    Type: String
-    Description: Toggle scheduler on or off
-    AllowedValues:
-      - 'true'
-      - 'false'
-    Default: 'false'
   JWTSigningKey:
     Type: String
     Description: JWT signing key
 
-Mappings:
-  SchedulerToggle:
-    Toggle:
-      'true': true
-      'false': false
-
 Resources:
-  dataFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: cmd/lambda/data/
-      Description: function responsible for fetching and storing data
-      Environment:
-        Variables:
-          DATA_BUCKET_NAME:
-            Ref: DataBucket
-          QUESTIONS_TABLE_NAME:
-            Ref: questionsTable
-          SUMMARIES_TABLE_NAME:
-            Ref: summariesTable
-          OPENAI_API_KEY:
-            Ref: OpenAIAPIKey
-          RSS_URL: http://www.aaronsw.com/2002/feeds/pgessays.rss
-      Events:
-        ScheduleEvent:
-          Type: Schedule
-          Properties:
-            Description: daily check for new blog content
-            Enabled:
-              Fn::FindInMap:
-                - SchedulerToggle
-                - Toggle
-                - Ref: SchedulerEnabled
-            Schedule: cron(0 12 * * ? *)
-      Handler: data
-      MemorySize: 1024
-      Policies:
-        - Version: '2012-10-17' 
-          Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:PutObject
-              Resource:
-                Fn::Sub: arn:aws:s3:::${DataBucket}/*
-            - Effect: Allow
-              Action:
-                - dynamodb:BatchWriteItem
-                - dynamodb:Scan
-              Resource:
-                Fn::GetAtt:
-                  - summariesTable
-                  - Arn
-            - Effect: Allow
-              Action:
-                - dynamodb:PutItem
-                - dynamodb:UpdateItem
-              Resource:
-                Fn::GetAtt:
-                  - questionsTable
-                  - Arn
-      Runtime: go1.x
-      Timeout: 30
   infoFunction:
     Type: AWS::Serverless::Function
     Properties:
