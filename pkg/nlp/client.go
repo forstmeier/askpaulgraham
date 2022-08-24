@@ -221,12 +221,6 @@ type getAnswersRespJSON struct {
 	Answers []string `json:"answers"`
 }
 
-// {"prompt": "<|endoftext|>[prompt]\n--\nLabel:",
-// "temperature": 0,
-//  "max_tokens": 1,
-//  "top_p":0,
-//  "logprobs": 10}'
-
 type getFilterReqJSON struct {
 	Prompt      string  `json:"prompt"`
 	Temperature float64 `json:"temperature"`
