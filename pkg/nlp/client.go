@@ -22,7 +22,7 @@ const documentsFilename = "documents.jsonl"
 
 const (
 	summariesModel = "curie"
-	answersModel   = "curie"
+	answersModel   = "davinci"
 )
 
 const (
