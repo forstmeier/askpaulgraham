@@ -2,12 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/google/uuid"
 
 	"github.com/forstmeier/askpaulgraham/pkg/db"
 	"github.com/forstmeier/askpaulgraham/pkg/nlp"
@@ -32,72 +29,80 @@ func handler(dbClient db.Databaser, nlpClient nlp.NLPer, jwtSigningKey string) f
 		// 	)
 		// }
 
-		switch request.HTTPMethod {
-		case "GET":
-			summaries, err := dbClient.GetSummaries(ctx)
-			if err != nil {
+		return util.SendResponse(
+			http.StatusOK,
+			nil,
+			"SUCCESSFUL_RESPONSE",
+		)
+
+		/*
+			switch request.HTTPMethod {
+			case "GET":
+				summaries, err := dbClient.GetSummaries(ctx)
+				if err != nil {
+					return util.SendResponse(
+						http.StatusInternalServerError,
+						err,
+						"GET_SUMMARIES_ERROR",
+					)
+				}
+
 				return util.SendResponse(
-					http.StatusInternalServerError,
-					err,
-					"GET_SUMMARIES_ERROR",
+					http.StatusOK,
+					summaries,
+					"SUCCESSFUL_GET_RESPONSE",
+				)
+
+			case "POST":
+				payload := requestPayload{}
+				if err := json.Unmarshal([]byte(request.Body), &payload); err != nil {
+					return util.SendResponse(
+						http.StatusBadRequest,
+						err,
+						"UNMARSHAL_BODY_ERROR",
+					)
+				}
+
+				id := uuid.NewString()
+
+				if err := dbClient.StoreQuestion(ctx, id, payload.Question); err != nil {
+					return util.SendResponse(
+						http.StatusInternalServerError,
+						err,
+						"STORE_QUESTION_ERROR",
+					)
+				}
+
+				answer, err := nlpClient.GetAnswer(ctx, payload.Question, payload.UserID)
+				if err != nil {
+					return util.SendResponse(
+						http.StatusInternalServerError,
+						err,
+						"GET_ANSWERS_ERROR",
+					)
+				}
+
+				if err := dbClient.StoreAnswer(ctx, id, *answer); err != nil {
+					return util.SendResponse(
+						http.StatusInternalServerError,
+						err,
+						"STORE_ANSWER_ERROR",
+					)
+				}
+
+				return util.SendResponse(
+					http.StatusOK,
+					*answer,
+					"SUCCESSFUL_POST_RESPONSE",
+				)
+
+			default:
+				return util.SendResponse(
+					http.StatusMethodNotAllowed,
+					fmt.Errorf("method '%s' not allowed", request.HTTPMethod),
+					"METHOD_NOT_ALLOWED_ERROR",
 				)
 			}
-
-			return util.SendResponse(
-				http.StatusOK,
-				summaries,
-				"SUCCESSFUL_GET_RESPONSE",
-			)
-
-		case "POST":
-			payload := requestPayload{}
-			if err := json.Unmarshal([]byte(request.Body), &payload); err != nil {
-				return util.SendResponse(
-					http.StatusBadRequest,
-					err,
-					"UNMARSHAL_BODY_ERROR",
-				)
-			}
-
-			id := uuid.NewString()
-
-			if err := dbClient.StoreQuestion(ctx, id, payload.Question); err != nil {
-				return util.SendResponse(
-					http.StatusInternalServerError,
-					err,
-					"STORE_QUESTION_ERROR",
-				)
-			}
-
-			answer, err := nlpClient.GetAnswer(ctx, payload.Question, payload.UserID)
-			if err != nil {
-				return util.SendResponse(
-					http.StatusInternalServerError,
-					err,
-					"GET_ANSWERS_ERROR",
-				)
-			}
-
-			if err := dbClient.StoreAnswer(ctx, id, *answer); err != nil {
-				return util.SendResponse(
-					http.StatusInternalServerError,
-					err,
-					"STORE_ANSWER_ERROR",
-				)
-			}
-
-			return util.SendResponse(
-				http.StatusOK,
-				*answer,
-				"SUCCESSFUL_POST_RESPONSE",
-			)
-
-		default:
-			return util.SendResponse(
-				http.StatusMethodNotAllowed,
-				fmt.Errorf("method '%s' not allowed", request.HTTPMethod),
-				"METHOD_NOT_ALLOWED_ERROR",
-			)
-		}
+		*/
 	}
 }

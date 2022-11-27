@@ -43,13 +43,23 @@
             </p>
           </template>
         </it-modal>
+        <it-alert
+          type="warning"
+          title="Warning"
+          body='AskPaulGraham is no longer functioning due to the OpenAI deprecation of their "answers" feature. Feel free to open a pull request on the project repo to fix this.'
+        />
+        <br />
         <it-tabs box>
           <it-tab title="Questions">
             <form v-on:submit.prevent="submitForm">
               <div class="question">
-                <it-input placeholder="Ask your question" v-model="question" />
+                <it-input
+                  placeholder="Ask your question"
+                  v-model="question"
+                  disabled
+                />
               </div>
-              <it-button>Submit</it-button>
+              <it-button disabled>Submit</it-button>
             </form>
             <div v-if="answer" class="answer">
               <it-alert
@@ -148,18 +158,18 @@ export default {
       this.$data.userID = response.data.ip;
     });
 
-    axios
-      .get("/summaries")
-      .then((response) => {
-        this.$data.summaries = response.data.summaries.sort(
-          (a, b) => b.number - a.number
-        );
-      })
-      .catch((error) => {
-        this.$Message.danger({
-          text: error.message,
-        });
-      });
+    // axios
+    //   .get("/summaries")
+    //   .then((response) => {
+    //     this.$data.summaries = response.data.summaries.sort(
+    //       (a, b) => b.number - a.number
+    //     );
+    //   })
+    //   .catch((error) => {
+    //     this.$Message.danger({
+    //       text: error.message,
+    //     });
+    //   });
   },
 };
 </script>
