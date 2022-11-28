@@ -197,6 +197,7 @@ body {
 
 img {
   border-radius: 50%;
+  filter: grayscale(100%);
 }
 
 .loading {
